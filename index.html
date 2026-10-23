@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>स्वच्छ लोनी, सुंदर लोनी</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- ✅ Firebase SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // ✅ Firebase Configuration - sundar-loni-4cb80
+        var firebaseConfig = {
+            apiKey: "AIzaSyAlGfIij7VqI3NEDUCftlZbD6VGp6kZNwY",
+            authDomain: "sundar-loni-4cb80.firebaseapp.com",
+            projectId: "sundar-loni-4cb80",
+            storageBucket: "sundar-loni-4cb80.firebasestorage.app",
+            messagingSenderId: "278682129023",
+            appId: "1:278682129023:web:b6eed5a3e6c985ed53654a",
+            measurementId: "G-NW041WHQ86"
+        };
+
+        if (typeof firebase !== 'undefined') {
+            firebase.initializeApp(firebaseConfig);
+            var db = firebase.firestore();
+            console.log("✅ Firebase initialized with sundar-loni-4cb80!");
+        } else {
+            console.error("❌ Firebase library not loaded!");
+        }
+    </script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: #f0f4f8; color: #1a202c; display: flex; flex-direction: column; overflow: hidden; }
+        #app { display: flex; flex-direction: column; height: 100vh; width: 100%; }
+        @keyframes blink { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .top-header { background: white; padding: 0.6rem 1.25rem; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; z-index: 10; flex-shrink: 0; }
+        .header-left { display: flex; align-items: center; gap: 0.6rem; }
+        .header-left .logo-icon { background: #0d9488; color: white; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .header-left h1 { font-size: 1.2rem; font-weight: 800; margin: 0; color: #065f46; }
+        .header-left .sub { font-size: 0.65rem; color: #718096; display: block; margin-top: -2px; }
+        .header-right { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; }
+        .report-badge { background: #0d9488; color: white; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.3rem; }
+        .filter-btn { background: white; border: 2px solid #e2e8f0; padding: 0.3rem 0.8rem; border-radius: 50px; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
+        .zone-btn { background: #3b82f6; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 50px; font-weight: 700; font-size: 0.75rem; cursor: pointer; }
+        .hamburger-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #1a202c; padding: 0.2rem 0.4rem; }
+        .hamburger-menu { display: none; position: absolute; top: 60px; right: 10px; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; z-index: 1000; min-width: 180px; padding: 0.5rem 0; }
+        .hamburger-menu.active { display: block; }
+        .hamburger-menu button { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 1.2rem; width: 100%; border: none; background: none; font-size: 0.9rem; font-weight: 600; color: #1a202c; cursor: pointer; font-family: inherit; }
+        #map { flex: 1; width: 100%; min-height: 0; background: #e8ecf1; z-index: 1; }
+        .legend { position: absolute; bottom: 130px; left: 15px; background: white; padding: 0.6rem 1rem; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 1000; display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.75rem; font-weight: 500; border: 1px solid #e2e8f0; }
+        .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+        .legend-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); flex-shrink: 0; animation: blink 1.2s ease-in-out infinite; }
+        .legend-dot.green { background: #22c55e; box-shadow: 0 0 12px #22c55e; }
+        .legend-dot.red { background: #ef4444; box-shadow: 0 0 12px #ef4444; }
+        .legend-dot.yellow { background: #eab308; box-shadow: 0 0 12px #eab308; animation-duration: 1.8s; }
+        .report-btn-bottom { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); background: #22c55e; color: white; border: none; padding: 0.8rem 2rem; border-radius: 60px; font-weight: 800; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.6rem; box-shadow: 0 8px 30px rgba(34,197,94,0.4); z-index: 1000; min-width: 220px; }
+        #selectedCard { display: none; position: absolute; bottom: 75px; left: 10px; right: 10px; background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 999; border: 2px solid #22c55e; overflow: hidden; animation: slideUp 0.3s ease; max-width: 500px; margin: 0 auto; }
+        #selectedCard.active { display: block; }
+        #selectedCard .card-img { width: 100%; height: 140px; object-fit: cover; }
+        #selectedCard .card-content { padding: 0.8rem 1rem; }
+        #selectedCard .card-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem; }
+        #selectedCard .card-time { font-size: 0.7rem; color: #718096; }
+        #selectedCard .card-status { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 50px; font-size: 0.7rem; font-weight: 800; margin: 0.4rem 0; }
+        #selectedCard .card-status.pending { background: #ef4444; color: white; }
+        #selectedCard .card-status.resolved { background: #22c55e; color: white; }
+        #selectedCard .card-status.in-progress { background: #eab308; color: white; }
+        #selectedCard .hirva-btn { width: 100%; background: #22c55e; color: white; border: none; padding: 0.9rem; border-radius: 10px; font-weight: 800; font-size: 1rem; cursor: pointer; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        #selectedCard .whatsapp-share-btn { width: 100%; background: #25D366; color: white; border: none; padding: 0.9rem; border-radius: 10px; font-weight: 800; font-size: 1rem; cursor: pointer; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        #selectedCard .close-card { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 16px; padding: 1.5rem; max-width: 420px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal h2 { font-size: 1.2rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; }
+        .modal .sub { color: #718096; font-size: 0.8rem; margin-bottom: 1rem; }
+        .modal .form-group { margin-bottom: 0.8rem; }
+        .modal .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.2rem; }
+        .modal .form-group input, .modal .form-group textarea, .modal .form-group select { width: 100%; padding: 0.5rem 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; font-family: inherit; }
+        .camera-options { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .camera-options button { flex: 1; min-width: 100px; padding: 0.6rem; border: 2px solid #e2e8f0; border-radius: 8px; background: white; font-weight: 600; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+        .camera-options button.camera-btn { background: #0d9488; color: white; border-color: #0d9488; }
+        .modal .preview-img { margin-top: 0.5rem; max-width: 100%; border-radius: 8px; max-height: 200px; display: none; border: 3px solid #22c55e; }
+        .modal .preview-img.show { display: block; }
+        .modal .btn-row { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
+        .modal .btn-row button { flex: 1; padding: 0.9rem; border: none; border-radius: 10px; font-weight: 800; font-size: 0.95rem; cursor: pointer; }
+        .modal .btn-submit { background: #25D366; color: white; }
+        .modal .btn-submit:disabled { background: #9ca3af; cursor: not-allowed; }
+        .modal .btn-cancel { background: #e2e8f0; color: #1a202c; }
+        .modal .location-status { font-size: 0.8rem; padding: 0.5rem 0.6rem; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; width: 100%; font-weight: 600; }
+        .modal .location-status.loading { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .modal .location-status.success { background: #dcfce7; color: #065f46; border: 1px solid #bbf7d0; }
+        .modal .location-status.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        #aboutPage { display: none; flex-direction: column; height: 100vh; width: 100%; background: #f8fafc; overflow-y: auto; padding: 0; position: fixed; top: 0; left: 0; z-index: 9999; }
+        #aboutPage.active { display: flex; }
+        .about-hero { background: linear-gradient(145deg, #0d9488, #065f46); color: white; padding: 2.5rem 1.5rem; border-radius: 0 0 40px 40px; text-align: center; margin-bottom: 2rem; }
+        .about-hero-badge { display: inline-block; background: rgba(255,255,255,0.15); padding: 0.2rem 1rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .about-hero h1 { font-size: 2.2rem; font-weight: 900; margin-bottom: 0.2rem; }
+        .about-hero-sub { font-size: 1rem; opacity: 0.9; max-width: 500px; margin: 0 auto 1.2rem; line-height: 1.5; }
+        .about-hero-stats { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 1rem; }
+        .hero-stat-num { display: block; font-size: 1.6rem; font-weight: 800; color: #fcd34d; }
+        .hero-stat-label { font-size: 0.7rem; opacity: 0.8; }
+        .about-container { max-width: 700px; margin: 0 auto; width: 100%; padding: 0 1.5rem 3rem; }
+        .about-card { background: white; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.2rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .about-card h3 { font-size: 1.1rem; font-weight: 700; color: #065f46; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+        .about-card p { font-size: 0.9rem; color: #4a5568; line-height: 1.6; }
+        .about-steps { list-style: none; padding: 0; }
+        .about-steps li { display: flex; align-items: flex-start; gap: 0.8rem; padding: 0.8rem 0; border-bottom: 1px solid #f0f4f8; font-size: 0.9rem; line-height: 1.5; }
+        .step-num { display: inline-flex; align-items: center; justify-content: center; background: #0d9488; color: white; width: 26px; height: 26px; border-radius: 50%; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
+        .credit-card { background: linear-gradient(145deg, #f0fdf4, #dcfce7); border: 2px solid #bbf7d0; border-radius: 20px; padding: 1.8rem; text-align: center; margin-top: 1rem; }
+        .credit-card .name { font-size: 1.4rem; font-weight: 800; color: #065f46; }
+        .credit-card .role { font-size: 0.9rem; color: #4a5568; margin-top: 0.3rem; line-height: 1.5; }
+        .back-btn { background: #0d9488; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 50px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem; }
+        .zone-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; }
+        .zone-modal-overlay.active { display: flex; }
+        .zone-modal { background: white; border-radius: 16px; padding: 1.5rem; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .zone-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+        .zone-stat-card { background: #f8fafc; border-radius: 8px; padding: 0.5rem; text-align: center; border: 1px solid #e2e8f0; }
+        .zone-stat-card .num { font-size: 1.5rem; font-weight: 800; }
+        .zone-stat-card.green .num { color: #22c55e; } .zone-stat-card.red .num { color: #ef4444; } .zone-stat-card.yellow .num { color: #eab308; }
+        .zone-report-item { background: #f8fafc; border-radius: 8px; padding: 0.6rem; margin-bottom: 0.4rem; border-left: 3px solid #e2e8f0; cursor: pointer; }
+        .zone-close-btn { width: 100%; padding: 0.6rem; background: #e2e8f0; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; }
+        #locationPickerModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; padding: 1rem; }
+        #locationPickerModal.active { display: flex; }
+        #locationPickerModal .picker-container { background: white; border-radius: 16px; width: 100%; max-width: 500px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+        #locationPickerModal #pickerMap { flex: 1; height: 400px; width: 100%; min-height: 300px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header class="top-header">
+            <div class="header-left"><div class="logo-icon"><i class="fas fa-leaf"></i></div><div><h1>स्वच्छ लोनी, सुंदर लोनी</h1><span class="sub">🗺️ तालुका: नांदगाव खंडेश्वर, जिल्हा: अमरावती</span></div></div>
+            <div class="header-right">
+                <span class="report-badge"><i class="fas fa-flag"></i> <span id="reportCount">0</span></span>
+                <button class="filter-btn" onclick="filterReports()"><i class="fas fa-sliders-h"></i> <span id="filterLabel">सर्व</span></button>
+                <button class="zone-btn" onclick="openZoneStatus()"><i class="fas fa-chart-pie"></i> झोन स्टेटस</button>
+                <button class="filter-btn" style="border-color:#0d9488;background:#f0fdfa;" onclick="zoomToVillage()"><i class="fas fa-home"></i></button>
+                <button class="hamburger-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+                <div class="hamburger-menu" id="hamburgerMenu"><button onclick="zoomToVillage(); toggleMenu();"><i class="fas fa-home" style="color:#0d9488"></i> होम</button><button onclick="openAbout(); toggleMenu();"><i class="fas fa-info-circle" style="color:#8b5cf6"></i> About</button></div>
+            </div>
+        </header>
+        <div id="map"></div>
+        <div id="selectedCard">
+            <button class="close-card" onclick="closeSelectedCard()"><i class="fas fa-times"></i></button>
+            <img id="cardImg" class="card-img" src="" />
+            <div class="card-content">
+                <div id="cardTitle" class="card-title"></div>
+                <div id="cardTime" class="card-time"></div>
+                <div id="cardStatus" class="card-status"></div>
+                <div id="cardBeforeAfter" style="display:none; margin: 0.5rem 0;">
+                    <div style="display:flex; gap:0.4rem;">
+                        <div style="flex:1;"><img id="cardBeforeImg" style="width:100%; height:80px; object-fit:cover; border-radius:6px;" /><div style="font-size:0.6rem; text-align:center; color:#ef4444; font-weight:700;">🔴 पहले</div></div>
+                        <div style="flex:1;"><img id="cardAfterImg" style="width:100%; height:80px; object-fit:cover; border-radius:6px;" /><div style="font-size:0.6rem; text-align:center; color:#22c55e; font-weight:700;">🟢 अब</div></div>
+                    </div>
+                </div>
+                <button id="cardHirvaBtn" class="hirva-btn"><i class="fas fa-check-circle"></i> सफाई झाली — हिरवा करा 🟢</button>
+                <button id="cardWhatsAppBtn" class="whatsapp-share-btn"><i class="fab fa-whatsapp"></i> WhatsApp वर Share करा</button>
+            </div>
+        </div>
+        <div class="legend"><div class="legend-item"><span class="legend-dot green"></span> सफाई झाली</div><div class="legend-item"><span class="legend-dot red"></span> सफाई बाकी</div><div class="legend-item"><span class="legend-dot yellow"></span> प्रगतीत</div></div>
+        <button class="report-btn-bottom" onclick="openReportModal()"><i class="fas fa-plus-circle"></i> तक्रार नोंदवा</button>
+    </div>
+    <div id="aboutPage">
+        <div class="about-hero">
+            <div class="about-hero-badge">🌿 ग्रामीण डिजिटल उपक्रम</div>
+            <h1>स्वच्छ लोनी, सुंदर लोनी</h1>
+            <p class="about-hero-sub">गाव स्वच्छ ठेवण्याची नागरिकांची पहल - एकत्र येऊन गाव सुंदर बनवूया</p>
+            <div class="about-hero-stats">
+                <div><span class="hero-stat-num" id="aboutTotalReports">0</span><span class="hero-stat-label">एकूण तक्रारी</span></div>
+                <div><span class="hero-stat-num" id="aboutResolvedReports">0</span><span class="hero-stat-label">सफाई झाली</span></div>
+                <div><span class="hero-stat-num" id="aboutPendingReports">0</span><span class="hero-stat-label">सफाई बाकी</span></div>
+            </div>
+        </div>
+        <div class="about-container">
+            <div class="about-card">
+                <h3>🎯 आमचे मिशन</h3>
+                <p><strong>लोनी गाव</strong> स्वच्छ, सुंदर आणि निरोगी बनवणे. प्रत्येक नागरिकाने आपल्या परिसराची काळजी घेणे आणि कचरा मुक्त गाव तयार करणे हे आमचे ध्येय आहे.</p>
+            </div>
+            <div class="about-card">
+                <h3>⚙️ हे कसे काम करते?</h3>
+                <ul class="about-steps">
+                    <li><span class="step-num">01</span> <div><strong>तक्रार करा:</strong> कचरा दिसल्यास फोटो काढा + आपोआप लोकेशन मिळेल</div></li>
+                    <li><span class="step-num">02</span> <div><strong>नकाशावर दिसेल:</strong> तुमची तक्रार नकाशावर 🔴 लाल बिंदू म्हणून दिसेल</div></li>
+                    <li><span class="step-num">03</span> <div><strong>WhatsApp वर जाईल:</strong> फोटो + लोकेशन + सर्व माहिती + Website लिंक याच नंबर वर WhatsApp App मध्ये उघडेल</div></li>
+                    <li><span class="step-num">04</span> <div><strong>अपडेट करा:</strong> सफाई झाल्यावर फोटो टाका - बिंदू 🟢 हिरवा होईल + फोटो अपडेट</div></li>
+                </ul>
+            </div>
+            <div class="about-card">
+                <h3>🌍 का महत्वाचे आहे?</h3>
+                <p>स्वच्छ गाव = निरोगी गाव. कचरा मुक्त परिसरामुळे रोगराई कमी होते, गाव सुंदर दिसते आणि पुढच्या पिढीसाठी चांगले वातावरण तयार होते.</p>
+            </div>
+            <div class="credit-card">
+                <div style="font-size:2.5rem;margin-bottom:0.5rem">👑</div>
+                <div class="name">एक कदम स्वच्छता की और 🙏लोणी (टा.)</div>
+                <div class="role">संकल्पना, डिझाइन आणि विकास<br>📍 लोनी, ता. नांदगाव खंडेश्वर, जि. अमरावती<br>🌿 स्वच्छ लोनी, सुंदर लोनी उपक्रम</div>
+            </div>
+            <button class="back-btn" onclick="closeAbout()"><i class="fas fa-arrow-left"></i> नकाशावर परत जा</button>
+        </div>
+    </div>
+    <div class="zone-modal-overlay" id="zoneModal"><div class="zone-modal"><h2>📍 झोन स्टेटस</h2><div class="zone-stats"><div class="zone-stat-card red"><div class="num" id="zonePending">0</div><div style="font-size:0.65rem">🔴 बाकी</div></div><div class="zone-stat-card yellow"><div class="num" id="zoneProgress">0</div><div style="font-size:0.65rem">🟡 प्रगतीत</div></div><div class="zone-stat-card green"><div class="num" id="zoneResolved">0</div><div style="font-size:0.65rem">🟢 झाली</div></div></div><div style="font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;">📋 एकूण: <span id="zoneTotal">0</span></div><div id="zoneReportList"></div><button class="zone-close-btn" onclick="closeZoneStatus()">बंद करा</button></div></div>
+    <div class="modal-overlay" id="reportModal">
+        <div class="modal">
+            <h2><i class="fas fa-flag" style="color:#ef4444;"></i> तक्रार नोंदवा</h2>
+            <p class="sub">फोटो + लोकेशन WhatsApp</p>
+            <div id="locationStatus" class="location-status loading"><span><i class="fas fa-spinner fa-spin"></i> स्थान घेत आहे...</span></div>
+            <div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;">
+                <button type="button" onclick="getCurrentLocationAuto()" style="flex:1;background:#0d9488;color:white;border:none;padding:0.5rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;"><i class="fas fa-crosshairs"></i> Auto Location</button>
+                <button type="button" onclick="pickLocationOnMap()" style="flex:1;background:#8b5cf6;color:white;border:none;padding:0.5rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;"><i class="fas fa-map-pin"></i> Map वर</button>
+            </div>
+            <form id="reportForm">
+                <div class="form-group"><label><i class="fas fa-camera"></i> फोटो घ्या *</label><div class="camera-options"><button type="button" class="camera-btn" onclick="openCamera()"><i class="fas fa-camera"></i> कॅमेरा</button><button type="button" class="gallery-btn" onclick="openGallery()"><i class="fas fa-images"></i> गॅलरी</button></div><input type="file" id="photoInput" accept="image/*" style="display:none;" /><input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" /><img id="previewImg" class="preview-img" /></div>
+                <div class="form-group"><label>समस्येचे वर्णन</label><textarea id="description" placeholder="कचऱ्याचे प्रमाण..." required></textarea></div>
+                <div class="form-group"><label>स्थिती</label><select id="reportStatus"><option value="pending">⏳ सफाई बाकी (लाल)</option><option value="in-progress">🔄 प्रगतीत (पिवळा)</option><option value="resolved">✅ सफाई झाली (हिरवा)</option></select></div>
+                <input type="hidden" id="reportLat" /><input type="hidden" id="reportLng" />
+                <div class="btn-row"><button type="button" class="btn-cancel" onclick="closeReportModal()">रद्द करा</button><button type="submit" class="btn-submit"><i class="fab fa-whatsapp"></i> सेव करा + WhatsApp पाठवा</button></div>
+            </form>
+        </div>
+    </div>
+    <div id="locationPickerModal"><div class="picker-container"><div style="padding:0.8rem 1rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;"><h3>लोकेशन निवडा</h3><button onclick="closeLocationPicker()"><i class="fas fa-times"></i></button></div><div id="pickerMap"></div><div style="padding:0.4rem 1rem;font-size:0.75rem;text-align:center;background:#f7fafc" id="pickerInfo">📍 नकाशावर क्लिक करा</div><div style="padding:0.8rem 1rem;display:flex;gap:0.5rem;"><button style="flex:1;padding:0.6rem;background:#e2e8f0;border:none;border-radius:8px;font-weight:700" onclick="closeLocationPicker()">रद्द करा</button><button style="flex:1;padding:0.6rem;background:#0d9488;color:white;border:none;border-radius:8px;font-weight:700" onclick="confirmLocation()">✅ निवडा</button></div></div></div>
+    <div class="modal-overlay" id="resolveModal">
+        <div class="modal">
+            <h2><i class="fas fa-check-circle" style="color:#22c55e;"></i> सफाई झाली? हिरवा करा</h2>
+            <p class="sub">स्वच्छ जागेचा फोटो - Database मध्ये अपडेट + हिरवा</p>
+            <div class="form-group">
+                <label><i class="fas fa-camera"></i> स्वच्छ जागेचा फोटो *</label>
+                <div class="camera-options">
+                    <button type="button" class="camera-btn" id="resolveCameraBtn"><i class="fas fa-camera"></i> कॅमेरा</button>
+                    <button type="button" class="gallery-btn" id="resolveGalleryBtn"><i class="fas fa-images"></i> गॅलरी</button>
+                </div>
+                <input type="file" id="resolvePhotoInput" accept="image/*" style="display:none;" />
+                <input type="file" id="resolveCameraInput" accept="image/*" capture="environment" style="display:none;" />
+                <img id="resolvePreviewImg" class="preview-img" />
+                <div id="resolvePhotoStatus" style="font-size:0.8rem;color:#718096;margin-top:0.5rem;text-align:center;padding:0.5rem;background:#f7fafc;border-radius:6px;">फोटो निवडा - स्वच्छ जागेचा</div>
+            </div>
+            <input type="hidden" id="resolveReportId" />
+            <div class="btn-row">
+                <button type="button" class="btn-cancel" onclick="closeResolveModal()">रद्द करा</button>
+                <button type="button" id="hirvaButton" style="flex:1;padding:0.9rem;background:#22c55e;color:white;border:none;border-radius:10px;font-weight:800;font-size:1rem;"><i class="fas fa-check"></i> हिरवा करा 🟢</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const WHATSAPP_NUMBER = '919763057854';
+        const LONI = { lat: 20.7915787, lng: 77.6790566 };
+        const map = L.map('map', { center: [LONI.lat, LONI.lng], zoom: 16, zoomControl: true, minZoom: 14, maxZoom: 19, attributionControl: false });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+        map.setMaxBounds([[20.775, 77.663],[20.807, 77.695]]);
+        let allReports = [];
+        let currentFilter = 'all'; let markers = []; let selectedReportId = null;
+        let isSubmitting = false; // ✅ डबल सबमिट रोकने के लिए flag
+        
+        async function loadReports() {
+            try {
+                const snapshot = await db.collection('reports').orderBy('createdAt', 'desc').get();
+                allReports = [];
+                snapshot.forEach(doc => { allReports.push({ id: doc.id, ...doc.data() }); });
+                console.log("✅ Reports loaded:", allReports.length);
+            } catch(e) { console.error("❌ Load error:", e); }
+            renderMarkers(allReports);
+        }
+        async function addReportToDatabase(report) {
+            try {
+                let smallImage = report.image; if(smallImage.length > 700000) smallImage = smallImage.substring(0, 700000);
+                const docRef = await db.collection('reports').add({
+                    lat: report.lat, lng: report.lng, status: report.status, description: report.description,
+                    timestamp: report.timestamp, image: smallImage, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                report.id = docRef.id;
+                console.log("✅ Report saved with ID:", docRef.id);
+                return true;
+            } catch(e) { console.error("❌ Save error:", e); return false; }
+        }
+        async function updateReportInDatabase(reportId, resolvedImage) {
+            try {
+                let smallImage = resolvedImage; if(smallImage.length > 700000) smallImage = smallImage.substring(0, 700000);
+                await db.collection('reports').doc(reportId).update({
+                    status: 'resolved', resolvedImage: smallImage, resolvedTimestamp: new Date().toLocaleString('mr-IN')
+                });
+                return true;
+            } catch(e) { console.error(e); return false; }
+        }
+        function getStatusColor(status) { switch(status){ case 'resolved': return '#22c55e'; case 'in-progress': return '#eab308'; default: return '#ef4444'; } }
+        function getStatusLabel(status) { switch(status){ case 'resolved': return '✅ सफाई झाली'; case 'in-progress': return '🔄 प्रगतीत'; default: return '⏳ सफाई बाकी'; } }
+        function createBlinkingDot(color) { return L.divIcon({ html: `<div style="width:20px;height:20px;background:${color};border-radius:50%;border:3px solid white;box-shadow:0 0 20px ${color},0 0 40px ${color};animation:blink 1.2s ease-in-out infinite;cursor:pointer;"></div>`, className: '', iconSize: [20,20], iconAnchor: [10,10] }); }
+        function renderMarkers(reports) {
+            markers.forEach(m => map.removeLayer(m)); markers = [];
+            let filtered = reports;
+            if (currentFilter === 'resolved') filtered = reports.filter(r => r.status === 'resolved');
+            else if (currentFilter === 'pending') filtered = reports.filter(r => r.status === 'pending' || r.status === 'in-progress');
+            document.getElementById('reportCount').textContent = filtered.length;
+            document.getElementById('filterLabel').textContent = currentFilter === 'all' ? 'सर्व' : currentFilter === 'resolved' ? 'स्वच्छ' : 'बाकी';
+            filtered.forEach(r => {
+                const color = getStatusColor(r.status); 
+                const icon = createBlinkingDot(color);
+                const popupContent = `<div style="max-width:280px; text-align:center;"><img src="${r.resolvedImage || r.image}" style="width:100%; border-radius:8px; margin-bottom:0.5rem; max-height:140px; object-fit:cover;" /><div style="font-weight:600; font-size:0.85rem;">${r.description}</div><div style="font-size:0.7rem; color:#718096;">${r.timestamp}</div><div style="margin-top:0.3rem; font-size:0.7rem; font-weight:700; color:${color};">${getStatusLabel(r.status)}</div><div style="font-size:0.65rem; margin-top:0.3rem; color:#065f46;">👇 खाली कार्ड मध्ये हिरवा करा</div></div>`;
+                const marker = L.marker([r.lat, r.lng], { icon }).addTo(map).bindPopup(popupContent, { maxWidth: 280 }); 
+                marker.reportId = r.id;
+                marker.on('click', function() { showSelectedCard(r.id); });
+                markers.push(marker);
+            });
+            if(selectedReportId) {
+                const stillExists = filtered.find(r => String(r.id) === String(selectedReportId));
+                if(!stillExists) closeSelectedCard();
+                else showSelectedCard(selectedReportId, false);
+            }
+        }
+        function showSelectedCard(reportId, fly=true) {
+            const r = allReports.find(x => String(x.id) === String(reportId));
+            if(!r) { console.log("Report not found:", reportId); return; }
+            selectedReportId = reportId;
+            document.getElementById('cardImg').src = r.resolvedImage || r.image;
+            document.getElementById('cardTitle').textContent = r.description;
+            document.getElementById('cardTime').textContent = '🕐 ' + r.timestamp;
+            const statusEl = document.getElementById('cardStatus');
+            statusEl.textContent = getStatusLabel(r.status);
+            statusEl.className = 'card-status ' + r.status;
+            const beforeAfter = document.getElementById('cardBeforeAfter');
+            const hirvaBtn = document.getElementById('cardHirvaBtn');
+            const whatsappBtn = document.getElementById('cardWhatsAppBtn');
+            
+            whatsappBtn.dataset.reportId = r.id;
+            whatsappBtn.onclick = function() { sendWhatsAppDirect(r); };
+            
+            if(r.status === 'resolved' && r.resolvedImage) {
+                beforeAfter.style.display = 'block';
+                document.getElementById('cardBeforeImg').src = r.image;
+                document.getElementById('cardAfterImg').src = r.resolvedImage;
+                hirvaBtn.style.display = 'none';
+            } else {
+                beforeAfter.style.display = 'none';
+                hirvaBtn.style.display = 'flex';
+                hirvaBtn.dataset.reportId = r.id;
+            }
+            document.getElementById('selectedCard').classList.add('active');
+            if(fly) map.flyTo([r.lat, r.lng], 18, {duration: 0.8});
+        }
+        function closeSelectedCard() { document.getElementById('selectedCard').classList.remove('active'); selectedReportId = null; }
+        document.getElementById('cardHirvaBtn').addEventListener('click', function(e) { e.preventDefault(); const reportId = this.dataset.reportId || selectedReportId; if(reportId) openResolveModal(reportId); });
+        
+        function sendWhatsAppDirect(report) {
+            const statusMap = { 'pending': '🔴 बाकी', 'in-progress': '🟡 प्रगतीत', 'resolved': '🟢 झाली' };
+            const websiteBase = window.location.origin + window.location.pathname;
+            const websiteLink = `${websiteBase}?id=${report.id || 'new'}&lat=${report.lat}&lng=${report.lng}`;
+            const gmapLink = `https://maps.google.com?q=${report.lat},${report.lng}`;
+            const text = `📋 *नवीन तक्रार - स्वच्छ लोनी*\n\n📝 *समस्या:* ${report.description}\n⏳ *स्थिती:* ${statusMap[report.status]}\n🕐 *वेळ:* ${report.timestamp}\n\n📍 *Google Map:* ${gmapLink}\n\n🌐 *वेबसाइटवर फोटो पहा:* ${websiteLink}\n\n📌 ${report.lat.toFixed(6)}, ${report.lng.toFixed(6)}\n\n🌿 *स्वच्छ लोनी, सुंदर लोनी*`;
+            const encodedText = encodeURIComponent(text);
+            window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedText}`, '_blank');
+        }
+        
+        let userLocation = null;
+        function getCurrentLocationAuto() {
+            const statusEl = document.getElementById('locationStatus');
+            statusEl.className = 'location-status loading'; statusEl.innerHTML = '<span><i class="fas fa-spinner fa-spin"></i> स्थान घेत आहे...</span>';
+            document.getElementById('reportLat').value = LONI.lat; document.getElementById('reportLng').value = LONI.lng; userLocation = LONI;
+            
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                statusEl.className = 'location-status error'; 
+                statusEl.innerHTML = `<span>⚠️ लाइव लोकेशनसाठी HTTPS आवश्यक आहे</span>`; 
+                return;
+            }
+            
+            if (!navigator.geolocation) { statusEl.className = 'location-status error'; statusEl.innerHTML = `<span>❌ GPS नाही</span>`; return; }
+            navigator.geolocation.getCurrentPosition((pos) => {
+                userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                document.getElementById('reportLat').value = userLocation.lat; document.getElementById('reportLng').value = userLocation.lng;
+                statusEl.className = 'location-status success'; statusEl.innerHTML = `<span>✅ Auto: ${userLocation.lat.toFixed(5)}, ${userLocation.lng.toFixed(5)}</span>`;
+            }, (err) => { statusEl.className = 'location-status error'; statusEl.innerHTML = `<span>⚠️ गाव लोकेशन</span>`; }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+        }
+        function openReportModal() { 
+            isSubmitting = false;
+            const submitBtn = document.querySelector('#reportForm .btn-submit');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fab fa-whatsapp"></i> सेव करा + WhatsApp पाठवा';
+            document.getElementById('reportModal').classList.add('active'); 
+            document.getElementById('reportForm').reset(); 
+            document.getElementById('previewImg').classList.remove('show'); 
+            document.getElementById('previewImg').src = ''; 
+            setTimeout(() => getCurrentLocationAuto(), 300); 
+        }
+        function closeReportModal() { document.getElementById('reportModal').classList.remove('active'); }
+        function openCamera() { const input = document.getElementById('cameraInput'); input.click(); input.onchange = function(e){ if(e.target.files && e.target.files[0]){ const file=e.target.files[0]; const reader=new FileReader(); reader.onload=function(ev){ const preview=document.getElementById('previewImg'); preview.src=ev.target.result; preview.classList.add('show'); const photoInput=document.getElementById('photoInput'); const dt=new DataTransfer(); dt.items.add(file); photoInput.files=dt.files; }; reader.readAsDataURL(file); } }; }
+        function openGallery() { const input = document.getElementById('photoInput'); input.click(); input.onchange = function(e){ if(e.target.files && e.target.files[0]){ const file=e.target.files[0]; const reader=new FileReader(); reader.onload=function(ev){ const preview=document.getElementById('previewImg'); preview.src=ev.target.result; preview.classList.add('show'); }; reader.readAsDataURL(file); } }; }
+        let pickerMap = null, pickerMarker = null, selectedLocation = null;
+        function pickLocationOnMap() {
+            document.getElementById('locationPickerModal').classList.add('active');
+            setTimeout(() => {
+                if (!pickerMap) {
+                    pickerMap = L.map('pickerMap', { center: [LONI.lat, LONI.lng], zoom: 15, attributionControl: false });
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(pickerMap);
+                    pickerMap.on('click', function(e){ const lat=e.latlng.lat, lng=e.latlng.lng; if(pickerMarker) pickerMap.removeLayer(pickerMarker); pickerMarker=L.marker([lat,lng],{draggable:true}).addTo(pickerMap); selectedLocation={lat:lat,lng:lng}; document.getElementById('pickerInfo').innerHTML=`📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`; });
+                } else { pickerMap.setView([LONI.lat, LONI.lng], 15); }
+                setTimeout(() => { if(pickerMap) pickerMap.invalidateSize(); }, 100);
+            }, 100);
+        }
+        function confirmLocation() { if(!selectedLocation){ alert('❌ लोकेशन निवडा!'); return; } document.getElementById('reportLat').value=selectedLocation.lat; document.getElementById('reportLng').value=selectedLocation.lng; userLocation=selectedLocation; const statusEl=document.getElementById('locationStatus'); statusEl.className='location-status success'; statusEl.innerHTML=`<span>✅ Map: ${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}</span>`; closeLocationPicker(); }
+        function closeLocationPicker() { document.getElementById('locationPickerModal').classList.remove('active'); }
+        
+        // ✅✅✅ FIXED: डबल सबमिट रोकने के साथ ✅✅✅
+        document.getElementById('reportForm').addEventListener('submit', async function(e){
+            e.preventDefault();
+            
+            // ✅ अगर पहले से सबमिट हो रहा है तो कुछ न करें
+            if (isSubmitting) {
+                console.log("⏳ पहले से सबमिट हो रहा है...");
+                return;
+            }
+            
+            const file = document.getElementById('photoInput').files[0];
+            if(!file) { alert('❌ फोटो निवडा!'); return; }
+            
+            // ✅ Submitting flag set करें
+            isSubmitting = true;
+            
+            // ✅ बटन disable करें
+            const submitBtn = this.querySelector('.btn-submit');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> सेव हो रहा है...';
+            
+            let lat = parseFloat(document.getElementById('reportLat').value);
+            let lng = parseFloat(document.getElementById('reportLng').value);
+            if(!lat || !lng || isNaN(lat)) { lat = LONI.lat; lng = LONI.lng; }
+            
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                const newReport = {
+                    lat: lat,
+                    lng: lng,
+                    status: document.getElementById('reportStatus').value,
+                    description: document.getElementById('description').value,
+                    timestamp: new Date().toLocaleString('mr-IN'),
+                    image: event.target.result
+                };
+                
+                const saved = await addReportToDatabase(newReport);
+                
+                if(!saved) {
+                    alert('❌ डेटाबेसमध्ये सेव झाले नाही! Firestore Rules तपासा.');
+                    isSubmitting = false;
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    return;
+                }
+                
+                await loadReports();
+                closeReportModal();
+                setTimeout(() => showSelectedCard(newReport.id), 300);
+                
+                setTimeout(() => {
+                    sendWhatsAppDirect(newReport);
+                }, 800);
+                
+                // ✅ Reset after 2 seconds
+                setTimeout(() => {
+                    isSubmitting = false;
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }, 2000);
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        let resolveImageData = null;
+        function openResolveModal(reportId) {
+            document.getElementById('resolveReportId').value = reportId;
+            document.getElementById('resolvePreviewImg').classList.remove('show');
+            document.getElementById('resolvePreviewImg').src='';
+            document.getElementById('resolvePhotoStatus').textContent='फोटो निवडा - स्वच्छ जागेचा';
+            resolveImageData = null;
+            document.getElementById('resolveModal').classList.add('active');
+            map.closePopup();
+        }
+        function closeResolveModal(){ document.getElementById('resolveModal').classList.remove('active'); }
+        function handleResolveFile(file) {
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                resolveImageData = ev.target.result;
+                const preview = document.getElementById('resolvePreviewImg');
+                preview.src = resolveImageData;
+                preview.classList.add('show');
+                document.getElementById('resolvePhotoStatus').textContent='✅ फोटो तयार - आता हिरवा करा दाबा';
+                document.getElementById('resolvePhotoStatus').style.color='#065f46';
+                document.getElementById('resolvePhotoStatus').style.background='#dcfce7';
+            };
+            reader.readAsDataURL(file);
+        }
+        document.getElementById('resolveCameraBtn').addEventListener('click', function() { const input = document.getElementById('resolveCameraInput'); input.value=''; input.onchange = function(e){ if(e.target.files && e.target.files[0]) handleResolveFile(e.target.files[0]); }; input.click(); });
+        document.getElementById('resolveGalleryBtn').addEventListener('click', function() { const input = document.getElementById('resolvePhotoInput'); input.value=''; input.onchange = function(e){ if(e.target.files && e.target.files[0]) handleResolveFile(e.target.files[0]); }; input.click(); });
+        document.getElementById('hirvaButton').addEventListener('click', async function(e) {
+            e.preventDefault();
+            const reportId = document.getElementById('resolveReportId').value;
+            if(!reportId) { alert('❌ ID मिळाला नाही!'); return; }
+            if(!resolveImageData) { alert('❌ फोटो निवडा!'); return; }
+            const updated = await updateReportInDatabase(reportId, resolveImageData);
+            if(updated) { await loadReports(); closeResolveModal(); setTimeout(() => { showSelectedCard(reportId); alert('✅ सफाई झाली! 🟢 बिंदू हिरवा झाला - डेटाबेसमध्ये अपडेट!'); }, 400); }
+        });
+        function filterReports(){ const filters=['all','resolved','pending']; let idx=filters.indexOf(currentFilter); idx=(idx+1)%filters.length; currentFilter=filters[idx]; renderMarkers(allReports); }
+        function zoomToVillage(){ closeSelectedCard(); map.flyTo([LONI.lat, LONI.lng],16,{duration:1}); }
+        function openZoneStatus(){ document.getElementById('zonePending').textContent=allReports.filter(r=>r.status==='pending').length; document.getElementById('zoneProgress').textContent=allReports.filter(r=>r.status==='in-progress').length; document.getElementById('zoneResolved').textContent=allReports.filter(r=>r.status==='resolved').length; document.getElementById('zoneTotal').textContent=allReports.length; const list=document.getElementById('zoneReportList'); if(allReports.length===0){ list.innerHTML=`<div style="text-align:center;color:#718096;padding:1rem;">कोणतीही तक्रार नाही</div>`; } else { list.innerHTML=allReports.slice().reverse().map(r=>`<div class="zone-report-item" onclick="showSelectedCard('${r.id}'); closeZoneStatus();"><div style="font-weight:600;font-size:0.85rem">${r.description}</div><div style="font-size:0.7rem;color:#718096">🕐 ${r.timestamp}</div><div style="font-size:0.65rem;color:${r.status==='resolved'?'#22c55e':'#ef4444'}">${r.status==='resolved'?'🟢 सफाई झाली':'🔴 बाकी'}</div></div>`).join(''); } document.getElementById('zoneModal').classList.add('active'); }
+        function closeZoneStatus(){ document.getElementById('zoneModal').classList.remove('active'); }
+        function toggleMenu(){ document.getElementById('hamburgerMenu').classList.toggle('active'); }
+        function openAbout(){ document.getElementById('aboutPage').classList.add('active'); document.getElementById('aboutTotalReports').textContent=allReports.length; document.getElementById('aboutResolvedReports').textContent=allReports.filter(r=>r.status==='resolved').length; document.getElementById('aboutPendingReports').textContent=allReports.filter(r=>r.status!=='resolved').length; }
+        function closeAbout(){ document.getElementById('aboutPage').classList.remove('active'); }
+        
+        loadReports();
+        db.collection('reports').onSnapshot(
+            function(snapshot) { console.log("✅ Real-time update:", snapshot.size, "reports"); loadReports(); },
+            function(error) { console.error("❌ Real-time error:", error); }
+        );
+        map.on('click', function(e) { if(e.originalEvent.target.closest('#selectedCard')) return; closeSelectedCard(); });
+        
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            const lat = parseFloat(urlParams.get('lat'));
+            const lng = parseFloat(urlParams.get('lng'));
+            console.log("🔗 URL Params:", { id, lat, lng });
+            if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+                setTimeout(function() {
+                    map.flyTo([lat, lng], 18, {duration: 1.5});
+                    if (id && id !== 'new') { showSelectedCard(id); }
+                }, 1500);
+            }
+        });
+    </script>
+</body>
+</html>
