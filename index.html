@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>स्वच्छ लोनी, सुंदर लोनी</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- ✅ Firebase SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyAlGfIij7VqI3NEDUCftlZbD6VGp6kZNwY",
+            authDomain: "sundar-loni-4cb80.firebaseapp.com",
+            projectId: "sundar-loni-4cb80",
+            storageBucket: "sundar-loni-4cb80.firebasestorage.app",
+            messagingSenderId: "278682129023",
+            appId: "1:278682129023:web:b6eed5a3e6c985ed53654a",
+            measurementId: "G-NW041WHQ86"
+        };
+
+        if (typeof firebase !== 'undefined') {
+            firebase.initializeApp(firebaseConfig);
+            var db = firebase.firestore();
+            console.log("✅ Firebase initialized!");
+        } else {
+            console.error("❌ Firebase library not loaded!");
+        }
+    </script>
+    
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-dark: #065f46;
+            --primary-light: #ccfbf1;
+            --accent: #10b981;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            touch-action: pan-x pan-y;
+            -webkit-text-size-adjust: 100%;
+        }
+        #app { 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            width: 100%;
+            touch-action: pan-x pan-y;
+        }
+        
+        @keyframes blink { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* ✅ हेडर डिज़ाइन */
+        .top-header { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            padding: 0.8rem 1.25rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: 0.5rem; 
+            z-index: 1000; 
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(6, 95, 70, 0.2);
+        }
+        .header-left { display: flex; align-items: center; gap: 0.6rem; }
+        .header-left .logo-icon { 
+            background: rgba(255,255,255,0.2); 
+            backdrop-filter: blur(5px);
+            color: white; 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header-left h1 { font-size: 1.2rem; font-weight: 700; margin: 0; color: white; letter-spacing: 0.5px; }
+        .header-left .sub { font-size: 0.65rem; color: #a7f3d0; display: block; margin-top: -2px; }
+        
+        .header-right { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+        .report-badge { 
+            background: rgba(255,255,255,0.2); 
+            color: white; 
+            padding: 0.35rem 0.8rem; 
+            border-radius: 50px; 
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.3rem; 
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .filter-btn, .zone-btn { 
+            background: white; 
+            border: none; 
+            padding: 0.35rem 0.8rem; 
+            border-radius: 50px; 
+            font-weight: 600; 
+            font-size: 0.75rem; 
+            cursor: pointer; 
+            color: var(--primary-dark);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .filter-btn:active, .zone-btn:active { transform: scale(0.95); }
+        
+        .hamburger-btn { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: white; padding: 0.2rem 0.4rem; }
+        .hamburger-menu { display: none; position: absolute; top: 70px; right: 15px; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid #e2e8f0; z-index: 1001; min-width: 180px; padding: 0.5rem 0; overflow: hidden; }
+        .hamburger-menu.active { display: block; animation: slideUp 0.2s ease-out; }
+        .hamburger-menu button { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1.2rem; width: 100%; border: none; background: none; font-size: 0.95rem; font-weight: 600; color: var(--text-main); cursor: pointer; font-family: inherit; transition: background 0.2s; }
+        .hamburger-menu button:active { background: var(--primary-light); }
+        
+        /* ✅ मैप */
+        #map { flex: 1; width: 100%; min-height: 0; background: #e5e7eb; z-index: 1; touch-action: auto; }
+        
+        /* ✅ लेजेंड */
+        .legend { 
+            position: absolute; bottom: 130px; left: 15px; 
+            background: rgba(255,255,255,0.9); 
+            backdrop-filter: blur(10px);
+            padding: 0.8rem 1rem; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
+            z-index: 500;
+            display: flex; flex-direction: column; gap: 0.5rem; 
+            font-size: 0.75rem; font-weight: 600; 
+            border: 1px solid white;
+        }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .legend-dot.green { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .legend-dot.red { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+        .legend-dot.yellow { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+        
+        /* ✅ राउंड बटन */
+        .report-btn-bottom { 
+            position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); 
+            background: linear-gradient(135deg, var(--accent), var(--primary)); 
+            color: white; border: none; padding: 1rem 2.5rem; 
+            border-radius: 60px; font-weight: 800; font-size: 1.1rem; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.6rem; 
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); 
+            z-index: 900; min-width: 240px; 
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .report-btn-bottom:active { transform: translateX(-50%) scale(0.95); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4); }
+        
+        /* ✅ कार्ड डिज़ाइन */
+        #selectedCard { 
+            display: none; position: absolute; bottom: 80px; left: 15px; right: 15px; 
+            background: var(--card-bg); border-radius: 24px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15); 
+            z-index: 999; 
+            border: 1px solid #f3f4f6; overflow: hidden; 
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            max-width: 500px; margin: 0 auto; 
+        }
+        #selectedCard.active { display: block; }
+        #selectedCard .card-img { width: 100%; height: auto; max-height: 280px; object-fit: contain; background: #f3f4f6; display: block; }
+        #selectedCard .card-content { padding: 1.2rem; }
+        #selectedCard .card-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem; color: var(--text-main); }
+        #selectedCard .card-time { font-size: 0.75rem; color: var(--text-light); display: flex; align-items: center; gap: 0.3rem; }
+        #selectedCard .card-status { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; margin: 0.6rem 0; }
+        #selectedCard .card-status.pending { background: #fee2e2; color: var(--danger); }
+        #selectedCard .card-status.resolved { background: #d1fae5; color: var(--success); }
+        #selectedCard .card-status.in-progress { background: #fef3c7; color: var(--warning); }
+        
+        /* ✅ नया Google Maps बटन */
+        #selectedCard .map-nav-btn {
+            width: 100%; background: #e0f2fe; color: #0284c7; border: 1.5px solid #bae6fd;
+            padding: 0.8rem; border-radius: 12px; font-weight: 700; font-size: 0.95rem;
+            cursor: pointer; margin-top: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+            transition: transform 0.2s;
+        }
+        #selectedCard .map-nav-btn:active { transform: scale(0.98); }
+
+        #selectedCard .hirva-btn { 
+            width: 100%; background: linear-gradient(135deg, #22c55e, #16a34a); 
+            color: white; border: none; padding: 1rem; border-radius: 12px; 
+            font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 0.5rem; 
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem; 
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); transition: transform 0.2s;
+        }
+        #selectedCard .hirva-btn:active { transform: scale(0.98); }
+        
+        #selectedCard .whatsapp-share-btn { 
+            width: 100%; background: linear-gradient(135deg, #25D366, #128C7E); 
+            color: white; border: none; padding: 1rem; border-radius: 12px; 
+            font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 0.6rem; 
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem; 
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); transition: transform 0.2s;
+        }
+        #selectedCard .whatsapp-share-btn:active { transform: scale(0.98); }
+        
+        #selectedCard .close-card { 
+            position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); 
+            backdrop-filter: blur(4px); color: white; border: none; 
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+        }
+        
+        /* ✅ मोडल डिज़ाइन */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 2000; justify-content: center; align-items: flex-end; }
+        .modal-overlay.active { display: flex; }
+        .modal { 
+            background: white; border-radius: 24px 24px 0 0; 
+            padding: 1.5rem; width: 100%; max-width: 500px; 
+            max-height: 92vh; overflow-y: auto; 
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.2); animation: slideUp 0.3s ease-out;
+        }
+        .modal h2 { font-size: 1.3rem; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.6rem; color: var(--primary-dark); }
+        .modal .sub { color: var(--text-light); font-size: 0.85rem; margin-bottom: 1.2rem; }
+        .modal .form-group { margin-bottom: 1rem; }
+        .modal .form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem; color: var(--text-main); }
+        .modal .form-group input, .modal .form-group textarea, .modal .form-group select { 
+            width: 100%; padding: 0.8rem; border: 1.5px solid #e5e7eb; 
+            border-radius: 12px; font-size: 0.95rem; font-family: inherit; 
+            background: #f9fafb; transition: border-color 0.2s; 
+        }
+        .modal .form-group input:focus, .modal .form-group textarea:focus, .modal .form-group select:focus { outline: none; border-color: var(--primary); background: white; }
+        
+        .camera-options { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
+        .camera-options button { 
+            flex: 1; padding: 0.8rem; border: 1.5px solid var(--primary); 
+            border-radius: 12px; background: var(--primary-light); 
+            color: var(--primary-dark); font-weight: 600; font-size: 0.85rem; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; 
+            transition: background 0.2s;
+        }
+        .camera-options button.camera-btn { background: var(--primary); color: white; }
+        
+        .modal .preview-img { margin-top: 0.8rem; max-width: 100%; border-radius: 12px; max-height: 200px; display: none; border: 3px solid var(--primary-light); }
+        .modal .preview-img.show { display: block; }
+        
+        .modal .btn-row { display: flex; gap: 0.6rem; margin-top: 1.2rem; }
+        .modal .btn-row button { flex: 1; padding: 1rem; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform 0.2s; }
+        .modal .btn-row button:active { transform: scale(0.98); }
+        .modal .btn-submit { background: linear-gradient(135deg, #25D366, #128C7E); color: white; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
+        .modal .btn-submit:disabled { background: #9ca3af; cursor: not-allowed; box-shadow: none; }
+        .modal .btn-cancel { background: #f3f4f6; color: var(--text-main); }
+        
+        .modal .location-status { font-size: 0.85rem; padding: 0.6rem 0.8rem; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; width: 100%; font-weight: 600; }
+        .modal .location-status.loading { background: #fef3c7; color: var(--warning); border: 1px solid #fde68a; }
+        .modal .location-status.success { background: #d1fae5; color: var(--success); border: 1px solid #a7f3d0; }
+        .modal .location-status.error { background: #fee2e2; color: var(--danger); border: 1px solid #fecaca; }
+        
+        /* ✅ About पेज */
+        #aboutPage { display: none; flex-direction: column; height: 100vh; width: 100%; background: var(--bg); overflow-y: auto; padding: 0; position: fixed; top: 0; left: 0; z-index: 9999; }
+        #aboutPage.active { display: flex; }
+        .about-hero { background: linear-gradient(145deg, var(--primary), var(--primary-dark)); color: white; padding: 3rem 1.5rem; border-radius: 0 0 40px 40px; text-align: center; margin-bottom: 2rem; box-shadow: 0 10px 20px rgba(6, 95, 70, 0.2); }
+        .about-hero-badge { display: inline-block; background: rgba(255,255,255,0.15); padding: 0.3rem 1rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.8rem; border: 1px solid rgba(255,255,255,0.3); }
+        .about-hero h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 0.4rem; letter-spacing: 0.5px; }
+        .about-hero-sub { font-size: 1rem; opacity: 0.9; max-width: 500px; margin: 0 auto 1.5rem; line-height: 1.5; }
+        .about-hero-stats { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 1rem; }
+        .hero-stat-num { display: block; font-size: 1.8rem; font-weight: 800; color: #fcd34d; }
+        .hero-stat-label { font-size: 0.75rem; opacity: 0.9; font-weight: 500; }
+        .about-container { max-width: 700px; margin: 0 auto; width: 100%; padding: 0 1.5rem 3rem; }
+        .about-card { background: var(--card-bg); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #f3f4f6; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .about-card h3 { font-size: 1.2rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+        .about-card p { font-size: 0.95rem; color: var(--text-main); line-height: 1.6; }
+        .about-steps { list-style: none; padding: 0; }
+        .about-steps li { display: flex; align-items: flex-start; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #f3f4f6; font-size: 0.95rem; line-height: 1.5; color: var(--text-main); }
+        .about-steps li:last-child { border-bottom: none; }
+        .step-num { display: inline-flex; align-items: center; justify-content: center; background: var(--primary-light); color: var(--primary-dark); width: 32px; height: 32px; border-radius: 50%; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+        .credit-card { background: linear-gradient(145deg, #f0fdf4, #dcfce7); border: 2px solid #bbf7d0; border-radius: 20px; padding: 2rem 1.5rem; text-align: center; margin-top: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .credit-card .name { font-size: 1.5rem; font-weight: 800; color: var(--primary-dark); }
+        .credit-card .role { font-size: 0.95rem; color: var(--text-main); margin-top: 0.5rem; line-height: 1.6; }
+        .back-btn { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; border: none; padding: 0.8rem 1.8rem; border-radius: 50px; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 2rem; box-shadow: 0 4px 15px rgba(6, 95, 70, 0.2); transition: transform 0.2s; }
+        .back-btn:active { transform: scale(0.98); }
+        
+        /* ✅ नया और अट्रैक्टिव झोन मोडल */
+        .zone-modal-overlay { 
+            display: none; position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); 
+            z-index: 2000; justify-content: center; align-items: center; padding: 1rem; 
+        }
+        .zone-modal-overlay.active { display: flex; }
+        .zone-modal { 
+            background: #f8fafc; border-radius: 24px; padding: 0; 
+            max-width: 450px; width: 100%; max-height: 85vh; overflow: hidden; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+            display: flex; flex-direction: column;
+            animation: slideUp 0.3s ease-out;
+        }
+        .zone-modal-header {
+            background: linear-gradient(135deg, #0d9488, #065f46);
+            padding: 1.5rem; color: white;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .zone-modal-header h2 { margin: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem; }
+        .zone-modal-body {
+            padding: 1.2rem; overflow-y: auto; flex: 1;
+        }
+        
+        /* नए 3D स्टेटस कार्ड्स */
+        .zone-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem; }
+        .zone-stat-card { 
+            background: white; border-radius: 16px; padding: 1rem 0.5rem; 
+            text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+            border-bottom: 4px solid transparent;
+        }
+        .zone-stat-card.red { border-bottom-color: #ef4444; }
+        .zone-stat-card.yellow { border-bottom-color: #f59e0b; }
+        .zone-stat-card.green { border-bottom-color: #10b981; }
+        
+        .zone-stat-card .num { font-size: 1.8rem; font-weight: 800; line-height: 1; margin-bottom: 0.3rem; }
+        .zone-stat-card.red .num { color: #ef4444; } 
+        .zone-stat-card.yellow .num { color: #f59e0b; } 
+        .zone-stat-card.green .num { color: #10b981; }
+        .zone-stat-card div:last-child { font-size: 0.75rem; font-weight: 700; color: #6b7280; }
+        
+        /* नई लिस्ट डिज़ाइन */
+        .zone-report-item { 
+            background: white; border-radius: 16px; padding: 1rem; 
+            margin-bottom: 0.8rem; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border-left: 5px solid #0d9488;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .zone-report-item:active { transform: scale(0.98); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        .zone-report-item .item-title { font-weight: 700; font-size: 0.95rem; color: #1f2937; margin-bottom: 0.3rem; }
+        .zone-report-item .item-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; }
+        .zone-report-item .item-time { font-size: 0.75rem; color: #9ca3af; display: flex; align-items: center; gap: 0.3rem; }
+        .zone-report-item .item-status { font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 50px; }
+        
+        .zone-close-btn { 
+            width: 100%; padding: 1rem; background: white; 
+            border: none; border-top: 1px solid #f3f4f6; 
+            font-weight: 700; font-size: 1rem; cursor: pointer; 
+            color: #1f2937; transition: background 0.2s;
+        }
+        .zone-close-btn:active { background: #f9fafb; }
+        
+        /* ✅ लोकेशन पिकर */
+        #locationPickerModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; padding: 1rem; }
+        #locationPickerModal.active { display: flex; }
+        #locationPickerModal .picker-container { background: white; border-radius: 20px; width: 100%; max-width: 500px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+        #locationPickerModal #pickerMap { flex: 1; height: 400px; width: 100%; min-height: 300px; touch-action: auto; }
+        
+        /* ✅ पॉप-अप (टूलटिप) का डिज़ाइन */
+        .leaflet-popup-content-wrapper { border-radius: 16px !important; box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important; padding: 0; overflow: hidden; }
+        .leaflet-popup-content { margin: 0 !important; width: 260px !important; }
+        .leaflet-popup-tip { box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header class="top-header">
+            <div class="header-left">
+                <div class="logo-icon"><i class="fas fa-leaf"></i></div>
+                <div>
+                    <h1>स्वच्छ लोनी</h1>
+                    <span class="sub">🗺️ तालुका: नांदगाव खंडेश्वर</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="report-badge"><i class="fas fa-flag"></i> <span id="reportCount">0</span></span>
+                <button class="filter-btn" onclick="filterReports()"><i class="fas fa-sliders-h"></i> <span id="filterLabel">सर्व</span></button>
+                <button class="zone-btn" onclick="openZoneStatus()"><i class="fas fa-chart-pie"></i> स्टेटस</button>
+                <button class="filter-btn" style="color:var(--primary-dark);" onclick="zoomToVillage()"><i class="fas fa-home"></i></button>
+                <button class="hamburger-btn" onclick="toggleMenu(event)"><i class="fas fa-bars"></i></button>
+                <div class="hamburger-menu" id="hamburgerMenu">
+                    <button onclick="zoomToVillage(); toggleMenu();"><i class="fas fa-home" style="color:var(--primary)"></i> होम</button>
+                    <button onclick="openAbout(); toggleMenu();"><i class="fas fa-info-circle" style="color:#8b5cf6"></i> About</button>
+                </div>
+            </div>
+        </header>
+        
+        <div id="map"></div>
+        
+        <div id="selectedCard">
+            <button class="close-card" onclick="closeSelectedCard()"><i class="fas fa-times"></i></button>
+            <img id="cardImg" class="card-img" src="" />
+            <div class="card-content">
+                <div id="cardTitle" class="card-title"></div>
+                <div id="cardTime" class="card-time"></div>
+                <div id="cardStatus" class="card-status"></div>
+                <div id="cardBeforeAfter" style="display:none; margin: 0.8rem 0;">
+                    <div style="display:flex; gap:0.6rem;">
+                        <div style="flex:1;"><img id="cardBeforeImg" style="width:100%; height:auto; max-height:150px; object-fit:contain; background:#f3f4f6; border-radius:12px;" /><div style="font-size:0.65rem; text-align:center; color:var(--danger); font-weight:700; margin-top:0.3rem;">🔴 पहले</div></div>
+                        <div style="flex:1;"><img id="cardAfterImg" style="width:100%; height:auto; max-height:150px; object-fit:contain; background:#f3f4f6; border-radius:12px;" /><div style="font-size:0.65rem; text-align:center; color:var(--success); font-weight:700; margin-top:0.3rem;">🟢 अब</div></div>
+                    </div>
+                </div>
+                
+                <button id="cardMapBtn" class="map-nav-btn"><i class="fas fa-map-marked-alt"></i> Google Maps वर जा</button>
+                <button id="cardHirvaBtn" class="hirva-btn"><i class="fas fa-check-circle"></i> सफाई झाली — हिरवा करा 🟢</button>
+                <button id="cardWhatsAppBtn" class="whatsapp-share-btn"><i class="fab fa-whatsapp"></i> WhatsApp वर Share करा</button>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item"><span class="legend-dot green"></span> सफाई झाली</div>
+            <div class="legend-item"><span class="legend-dot red"></span> सफाई बाकी</div>
+            <div class="legend-item"><span class="legend-dot yellow"></span> प्रगतीत</div>
+        </div>
+        
+        <button class="report-btn-bottom" onclick="openReportModal()"><i class="fas fa-plus-circle"></i> तक्रार नोंदवा</button>
+    </div>
+
+    <!-- About Page -->
+    <div id="aboutPage">
+        <div class="about-hero">
+            <div class="about-hero-badge">🌿 ग्रामीण डिजिटल उपक्रम</div>
+            <h1>स्वच्छ लोनी</h1>
+            <p class="about-hero-sub">गाव स्वच्छ ठेवण्याची नागरिकांची पहल - एकत्र येऊन गाव सुंदर बनवूया</p>
+            <div class="about-hero-stats">
+                <div><span class="hero-stat-num" id="aboutTotalReports">0</span><span class="hero-stat-label">एकूण तक्रारी</span></div>
+                <div><span class="hero-stat-num" id="aboutResolvedReports">0</span><span class="hero-stat-label">सफाई झाली</span></div>
+                <div><span class="hero-stat-num" id="aboutPendingReports">0</span><span class="hero-stat-label">सफाई बाकी</span></div>
+            </div>
+        </div>
+        <div class="about-container">
+            <div class="about-card">
+                <h3>🎯 आमचे मिशन</h3>
+                <p><strong>लोनी गाव</strong> स्वच्छ, सुंदर आणि निरोगी बनवणे. प्रत्येक नागरिकाने आपल्या परिसराची काळजी घेणे आणि कचरा मुक्त गाव तयार करणे हे आमचे ध्येय आहे.</p>
+            </div>
+            <div class="about-card">
+                <h3>⚙️ हे कसे काम करते?</h3>
+                <ul class="about-steps">
+                    <li><span class="step-num">01</span> <div><strong>तक्रार करा:</strong> कचरा दिसल्यास फोटो काढा + आपोआप लोकेशन मिळेल</div></li>
+                    <li><span class="step-num">02</span> <div><strong>नकाशावर दिसेल:</strong> तुमची तक्रार नकाशावर 🔴 लाल बिंदू म्हणून दिसेल</div></li>
+                    <li><span class="step-num">03</span> <div><strong>WhatsApp वर जाईल:</strong> फोटो + लोकेशन + सर्व माहिती + Website लिंक WhatsApp वर उघडेल</div></li>
+                    <li><span class="step-num">04</span> <div><strong>अपडेट करा:</strong> सफाई झाल्यावर फोटो टाका - बिंदू 🟢 हिरवा होईल + फोटो अपडेट</div></li>
+                </ul>
+            </div>
+            <div class="about-card">
+                <h3>🌍 का महत्वाचे आहे?</h3>
+                <p>स्वच्छ गाव = निरोगी गाव. कचरा मुक्त परिसरामुळे रोगराई कमी होते, गाव सुंदर दिसते आणि पुढच्या पिढीसाठी चांगले वातावरण तयार होते.</p>
+            </div>
+            
+            <!-- नया शेयर बटन -->
+            <button class="back-btn" style="width: 100%; justify-content: center; margin-top: 1rem; background: #25D366; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);" onclick="shareWebsite()">
+                <i class="fab fa-whatsapp"></i> ही वेबसाइट मित्रांना शेयर करा
+            </button>
+
+            <div class="credit-card">
+                <div style="font-size:2.5rem;margin-bottom:0.5rem">👑</div>
+                <div class="name">एक कदम स्वच्छता की और 🙏लोणी (टा.)</div>
+                <div class="role">संकल्पना, डिझाइन आणि विकास<br>📍 लोनी, ता. नांदगाव खंडेश्वर, जि. अमरावती<br>🌿 स्वच्छ लोनी, सुंदर लोनी उपक्रम</div>
+            </div>
+            
+            <button class="back-btn" onclick="closeAbout()"><i class="fas fa-arrow-left"></i> नकाशावर परत जा</button>
+        </div>
+    </div>
+
+    <!-- Zone Modal -->
+    <div class="zone-modal-overlay" id="zoneModal">
+        <div class="zone-modal">
+            <div class="zone-modal-header">
+                <h2><i class="fas fa-chart-pie"></i> झोन स्टेटस</h2>
+                <button onclick="closeZoneStatus()" style="background:rgba(255,255,255,0.2); border:none; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="zone-modal-body">
+                <div class="zone-stats">
+                    <div class="zone-stat-card red"><div class="num" id="zonePending">0</div><div>🔴 बाकी</div></div>
+                    <div class="zone-stat-card yellow"><div class="num" id="zoneProgress">0</div><div>🟡 प्रगतीत</div></div>
+                    <div class="zone-stat-card green"><div class="num" id="zoneResolved">0</div><div>🟢 झाली</div></div>
+                </div>
+                
+                <div style="font-size:0.95rem;font-weight:700;margin-bottom:1rem;color:#1f2937;display:flex;justify-content:space-between;">
+                    <span>📋 एकूण तक्रारी</span>
+                    <span id="zoneTotal" style="color:#0d9488;background:#ccfbf1;padding:0.1rem 0.6rem;border-radius:50px;">0</span>
+                </div>
+                
+                <div id="zoneReportList"></div>
+            </div>
+            <button class="zone-close-btn" onclick="closeZoneStatus()">बंद करा</button>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal-overlay" id="reportModal">
+        <div class="modal">
+            <h2><i class="fas fa-flag" style="color:var(--danger);"></i> तक्रार नोंदवा</h2>
+            <p class="sub">फोटो + लोकेशन + WhatsApp</p>
+            
+            <div id="locationStatus" class="location-status loading"><span><i class="fas fa-spinner fa-spin"></i> स्थान घेत आहे...</span></div>
+            <div style="display:flex;gap:0.6rem;margin-bottom:1rem;">
+                <button type="button" onclick="getCurrentLocationAuto()" style="flex:1;background:var(--primary);color:white;border:none;padding:0.7rem;border-radius:10px;font-size:0.85rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(13,148,136,0.3);"><i class="fas fa-crosshairs"></i> Auto Location</button>
+                <button type="button" onclick="pickLocationOnMap()" style="flex:1;background:#8b5cf6;color:white;border:none;padding:0.7rem;border-radius:10px;font-size:0.85rem;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(139,92,246,0.3);"><i class="fas fa-map-pin"></i> Map वर</button>
+            </div>
+            
+            <form id="reportForm">
+                <div class="form-group">
+                    <label><i class="fas fa-camera" style="color:var(--primary);"></i> फोटो घ्या *</label>
+                    <div class="camera-options">
+                        <button type="button" class="camera-btn" onclick="openCamera()"><i class="fas fa-camera"></i> कॅमेरा</button>
+                        <button type="button" class="gallery-btn" onclick="openGallery()"><i class="fas fa-images"></i> गॅलरी</button>
+                    </div>
+                    <input type="file" id="photoInput" accept="image/*" style="display:none;" />
+                    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" />
+                    <img id="previewImg" class="preview-img" />
+                </div>
+                
+                <div class="form-group">
+                    <label>समस्येचे वर्णन</label>
+                    <textarea id="description" placeholder="कचऱ्याचे प्रमाण किंवा समस्या लिहा..." required style="min-height:80px;resize:vertical;"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>स्थिती</label>
+                    <select id="reportStatus">
+                        <option value="pending">⏳ सफाई बाकी (लाल)</option>
+                        <option value="in-progress">🔄 प्रगतीत (पिवळा)</option>
+                        <option value="resolved">✅ सफाई झाली (हिरवा)</option>
+                    </select>
+                </div>
+                
+                <input type="hidden" id="reportLat" />
+                <input type="hidden" id="reportLng" />
+                
+                <div class="btn-row">
+                    <button type="button" class="btn-cancel" onclick="closeReportModal()">रद्द करा</button>
+                    <button type="submit" class="btn-submit"><i class="fab fa-whatsapp"></i> सेव करा + WhatsApp</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Location Picker Modal -->
+    <div id="locationPickerModal">
+        <div class="picker-container">
+            <div style="padding:1rem;border-bottom:1px solid #f3f4f6;display:flex;justify-content:space-between;align-items:center;">
+                <h3 style="margin:0;font-size:1.1rem;color:var(--primary-dark);">लोकेशन निवडा</h3>
+                <button onclick="closeLocationPicker()" style="background:#f3f4f6;border:none;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="pickerMap"></div>
+            <div style="padding:0.6rem 1rem;font-size:0.8rem;text-align:center;background:#f9fafb;color:var(--text-light);font-weight:600;" id="pickerInfo">📍 नकाशावर क्लिक करा</div>
+            <div style="padding:1rem;display:flex;gap:0.6rem;">
+                <button style="flex:1;padding:0.8rem;background:#f3f4f6;border:none;border-radius:12px;font-weight:600;color:var(--text-main);cursor:pointer;" onclick="closeLocationPicker()">रद्द करा</button>
+                <button style="flex:1;padding:0.8rem;background:var(--primary);color:white;border:none;border-radius:12px;font-weight:600;cursor:pointer;" onclick="confirmLocation()">✅ निवडा</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resolve Modal -->
+    <div class="modal-overlay" id="resolveModal">
+        <div class="modal">
+            <h2><i class="fas fa-check-circle" style="color:var(--success);"></i> सफाई झाली? हिरवा करा</h2>
+            <p class="sub">स्वच्छ जागेचा फोटो टाका - <strong>वेबसाइटवर</strong> अपडेट होईल</p>
+            
+            <div class="form-group">
+                <label><i class="fas fa-camera" style="color:var(--primary);"></i> स्वच्छ जागेचा फोटो *</label>
+                <div class="camera-options">
+                    <button type="button" class="camera-btn" id="resolveCameraBtn"><i class="fas fa-camera"></i> कॅमेरा</button>
+                    <button type="button" class="gallery-btn" id="resolveGalleryBtn"><i class="fas fa-images"></i> गॅलरी</button>
+                </div>
+                <input type="file" id="resolvePhotoInput" accept="image/*" style="display:none;" />
+                <input type="file" id="resolveCameraInput" accept="image/*" capture="environment" style="display:none;" />
+                <img id="resolvePreviewImg" class="preview-img" />
+                <div id="resolvePhotoStatus" style="font-size:0.85rem;color:var(--text-light);margin-top:0.6rem;text-align:center;padding:0.6rem;background:#f9fafb;border-radius:10px;font-weight:600;">फोटो निवडा - स्वच्छ जागेचा</div>
+            </div>
+            
+            <input type="hidden" id="resolveReportId" />
+            
+            <div class="btn-row">
+                <button type="button" class="btn-cancel" onclick="closeResolveModal()">रद्द करा</button>
+                <button type="button" id="hirvaButton" style="flex:1;padding:1rem;background:linear-gradient(135deg, #22c55e, #16a34a);color:white;border:none;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 4px 15px rgba(34,197,94,0.3);"><i class="fas fa-check"></i> हिरवा करा 🟢</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const WHATSAPP_NUMBER = '0'; 
+        
+        const LONI = { lat: 20.7915787, lng: 77.6790566 };
+        const map = L.map('map', { center: [LONI.lat, LONI.lng], zoom: 16, zoomControl: true, minZoom: 14, maxZoom: 19, attributionControl: false });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+        map.setMaxBounds([[20.775, 77.663],[20.807, 77.695]]);
+        
+        let allReports = [];
+        let currentFilter = 'all'; let markers = []; let selectedReportId = null;
+        let isSubmitting = false;
+        
+        // ✅ 1. सिस्टीमॅटिक मेनू (इतरत्र क्लिक केल्यावर बंद होणे)
+        function toggleMenu(event) {
+            if (event) event.stopPropagation(); 
+            const menu = document.getElementById('hamburgerMenu');
+            menu.classList.toggle('active');
+        }
+        
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('hamburgerMenu');
+            const btn = document.querySelector('.hamburger-btn');
+            if (menu.classList.contains('active')) {
+                if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                    menu.classList.remove('active');
+                }
+            }
+        });
+        
+        document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+        document.addEventListener('gesturechange', function(e) { e.preventDefault(); }, { passive: false });
+        document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { passive: false });
+        
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            if (e.target.closest('#map') || e.target.closest('#pickerMap')) return;
+            const now = new Date().getTime();
+            if (now - lastTouchEnd <= 300) { e.preventDefault(); }
+            lastTouchEnd = now;
+        }, { passive: false });
+        
+        function compressImage(base64Image, maxWidth, quality, callback) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height = (height * maxWidth) / width;
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                callback(compressedBase64);
+            };
+            img.src = base64Image;
+        }
+        
+        async function loadReports() {
+            try {
+                const snapshot = await db.collection('reports').orderBy('createdAt', 'desc').get();
+                allReports = [];
+                snapshot.forEach(doc => { allReports.push({ id: doc.id, ...doc.data() }); });
+                console.log("✅ Reports loaded:", allReports.length);
+            } catch(e) { console.error("❌ Load error:", e); }
+            renderMarkers(allReports);
+        }
+        
+        async function addReportToDatabase(report) {
+            try {
+                const docRef = await db.collection('reports').add({
+                    lat: report.lat, lng: report.lng, status: report.status, 
+                    description: report.description, timestamp: report.timestamp, 
+                    image: report.image, 
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                report.id = docRef.id;
+                console.log("✅ Report saved with ID:", docRef.id);
+                return true;
+            } catch(e) { console.error("❌ Save error:", e); return false; }
+        }
+        
+        async function updateReportInDatabase(reportId, resolvedImage) {
+            try {
+                await db.collection('reports').doc(reportId).update({
+                    status: 'resolved', resolvedImage: resolvedImage, resolvedTimestamp: new Date().toLocaleString('mr-IN')
+                });
+                return true;
+            } catch(e) { console.error(e); return false; }
+        }
+        
+        function getStatusColor(status) { switch(status){ case 'resolved': return '#10b981'; case 'in-progress': return '#f59e0b'; default: return '#ef4444'; } }
+        function getStatusLabel(status) { switch(status){ case 'resolved': return '✅ सफाई झाली'; case 'in-progress': return '🔄 प्रगतीत'; default: return '⏳ सफाई बाकी'; } }
+        
+        function createBlinkingDot(color) { 
+            return L.divIcon({ 
+                html: `<div style="width:22px;height:22px;background:${color};border-radius:50%;border:3px solid white;box-shadow:0 0 15px ${color},0 0 30px ${color};animation:blink 1.5s ease-in-out infinite;cursor:pointer;"></div>`, 
+                className: '', iconSize: [22,22], iconAnchor: [11,11] 
+            }); 
+        }
+        
+        function renderMarkers(reports) {
+            markers.forEach(m => map.removeLayer(m)); markers = [];
+            let filtered = reports;
+            if (currentFilter === 'resolved') filtered = reports.filter(r => r.status === 'resolved');
+            else if (currentFilter === 'pending') filtered = reports.filter(r => r.status === 'pending' || r.status === 'in-progress');
+            
+            document.getElementById('reportCount').textContent = filtered.length;
+            document.getElementById('filterLabel').textContent = currentFilter === 'all' ? 'सर्व' : currentFilter === 'resolved' ? 'स्वच्छ' : 'बाकी';
+            
+            filtered.forEach(r => {
+                const color = getStatusColor(r.status); 
+                const icon = createBlinkingDot(color);
+                
+                const popupContent = `<div style="font-family:'Poppins',sans-serif; width: 100%;">
+                    <img src="${r.resolvedImage || r.image}" style="width:100%; height:140px; object-fit:cover; border-radius:12px 12px 0 0; display:block;" />
+                    <div style="padding: 0.8rem; background:white;">
+                        <div style="font-weight:700; font-size:0.95rem; color:#1f2937; line-height:1.4; margin-bottom:0.3rem;">${r.description}</div>
+                        <div style="font-size:0.75rem; color:#6b7280; margin-bottom: 0.4rem;">${r.timestamp}</div>
+                        <div style="font-size:0.8rem; font-weight:700; color:${color}; background:${color}20; padding:0.2rem 0.6rem; border-radius:50px; display:inline-block;">${getStatusLabel(r.status)}</div>
+                    </div>
+                </div>`;
+
+                const marker = L.marker([r.lat, r.lng], { icon }).addTo(map).bindPopup(popupContent, { 
+                    maxWidth: 280, 
+                    autoPan: true, 
+                    autoPanPadding: [30, 30] 
+                }); 
+                
+                marker.reportId = r.id;
+                marker.on('click', function() { showSelectedCard(r.id); });
+                markers.push(marker);
+            });
+            
+            if(selectedReportId) {
+                const stillExists = filtered.find(r => String(r.id) === String(selectedReportId));
+                if(!stillExists) closeSelectedCard();
+                else showSelectedCard(selectedReportId, false);
+            }
+        }
+        
+        function showSelectedCard(reportId, fly=true) {
+            const r = allReports.find(x => String(x.id) === String(reportId));
+            if(!r) return;
+            selectedReportId = reportId;
+            document.getElementById('cardImg').src = r.resolvedImage || r.image;
+            document.getElementById('cardTitle').textContent = r.description;
+            document.getElementById('cardTime').textContent = '🕐 ' + r.timestamp;
+            
+            const statusEl = document.getElementById('cardStatus');
+            statusEl.textContent = getStatusLabel(r.status);
+            statusEl.className = 'card-status ' + r.status;
+            
+            const beforeAfter = document.getElementById('cardBeforeAfter');
+            const hirvaBtn = document.getElementById('cardHirvaBtn');
+            const whatsappBtn = document.getElementById('cardWhatsAppBtn');
+            const mapBtn = document.getElementById('cardMapBtn');
+            
+            whatsappBtn.dataset.reportId = r.id;
+            whatsappBtn.onclick = function(e) { 
+                e.preventDefault(); e.stopPropagation(); sendWhatsAppDirect(r); 
+            };
+
+            // ✅ Google Maps नेविगेशन बटन
+            mapBtn.onclick = function(e) {
+                e.preventDefault(); e.stopPropagation();
+                const url = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
+                window.open(url, '_blank');
+            };
+            
+            if(r.status === 'resolved' && r.resolvedImage) {
+                beforeAfter.style.display = 'block';
+                document.getElementById('cardBeforeImg').src = r.image;
+                document.getElementById('cardAfterImg').src = r.resolvedImage;
+                hirvaBtn.style.display = 'none';
+            } else {
+                beforeAfter.style.display = 'none';
+                hirvaBtn.style.display = 'flex';
+                hirvaBtn.dataset.reportId = r.id;
+            }
+            
+            document.getElementById('selectedCard').classList.add('active');
+            if(fly) map.flyTo([r.lat, r.lng], 18, {duration: 0.8});
+        }
+        
+        function closeSelectedCard() { document.getElementById('selectedCard').classList.remove('active'); selectedReportId = null; }
+        document.getElementById('cardHirvaBtn').addEventListener('click', function(e) { e.preventDefault(); const reportId = this.dataset.reportId || selectedReportId; if(reportId) openResolveModal(reportId); });
+        
+        function sendWhatsAppDirect(report) {
+            const statusMap = { 'pending': '🔴 बाकी', 'in-progress': '🟡 प्रगतीत', 'resolved': '🟢 झाली' };
+            const websiteBase = window.location.origin + window.location.pathname;
+            const websiteLink = `${websiteBase}?id=${report.id || 'new'}&lat=${report.lat}&lng=${report.lng}`;
+            const gmapLink = `https://maps.google.com?q=${report.lat},${report.lng}`;
+            
+            const text = `📋 *नवीन तक्रार - स्वच्छ लोनी*\n\n📝 *समस्या:* ${report.description}\n⏳ *स्थिती:* ${statusMap[report.status]}\n🕐 *वेळ:* ${report.timestamp}\n\n📍 *Google Map:* ${gmapLink}\n\n🌐 *वेबसाइटवर फोटो आणि लोकेशन पहा:* ${websiteLink}\n\n📌 ${report.lat.toFixed(6)}, ${report.lng.toFixed(6)}\n\n🌿 *स्वच्छ लोनी, सुंदर लोनी*`;
+            
+            const encodedText = encodeURIComponent(text);
+            
+            if (WHATSAPP_NUMBER === '0' || WHATSAPP_NUMBER === '') {
+                window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+            } else {
+                window.open(`https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodedText}`, '_blank');
+            }
+        }
+
+        // ✅ About पेज शेयर बटन
+        function shareWebsite() {
+            const text = `🌿 *स्वच्छ लोनी, सुंदर लोनी*\n\nगाव स्वच्छ ठेवण्याची आपली पहल! कचरा दिसल्यास फोटो काढून तक्रार नोंदवा आणि गाव सुंदर बनवण्यास मदत करा.\n\n👉 या लिंकवर क्लिक करा:\n${window.location.origin}${window.location.pathname}`;
+            const encoded = encodeURIComponent(text);
+            window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+        }
+        
+        let userLocation = null;
+        function getCurrentLocationAuto() {
+            const statusEl = document.getElementById('locationStatus');
+            statusEl.className = 'location-status loading'; 
+            statusEl.innerHTML = '<span><i class="fas fa-spinner fa-spin"></i> स्थान घेत आहे...</span>';
+            
+            if (!navigator.geolocation) { 
+                statusEl.className = 'location-status error'; 
+                statusEl.innerHTML = `<span>❌ GPS नाही</span>`; 
+                return; 
+            }
+            
+            // ✅ 4 नंबर: सटीक लोकेशन और गाँव के अंदर होने की जाँच
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const userLat = pos.coords.latitude;
+                    const userLng = pos.coords.longitude;
+                    
+                    // Haversine फॉर्मूला (दूरी निकालने के लिए)
+                    const R = 6371; // पृथ्वी की त्रिज्या किमी में
+                    const dLat = (userLat - LONI.lat) * Math.PI / 180;
+                    const dLon = (userLng - LONI.lng) * Math.PI / 180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                              Math.cos(LONI.lat * Math.PI / 180) * Math.cos(userLat * Math.PI / 180) *
+                              Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    const distance = R * c; // किमी में दूरी
+                    
+                    if (distance > 5) { // अगर गाँव से 5 किमी दूर है
+                        statusEl.className = 'location-status error'; 
+                        statusEl.innerHTML = `<span>⚠️ आप लोनी गांव से बाहर हैं (${distance.toFixed(1)} किमी). कृपया गांव के अंदर से तक्रार करें.</span>`;
+                        document.getElementById('reportLat').value = '';
+                        document.getElementById('reportLng').value = '';
+                    } else {
+                        userLocation = { lat: userLat, lng: userLng };
+                        document.getElementById('reportLat').value = userLocation.lat; 
+                        document.getElementById('reportLng').value = userLocation.lng;
+                        statusEl.className = 'location-status success'; 
+                        statusEl.innerHTML = `<span>✅ Auto: ${userLocation.lat.toFixed(5)}, ${userLocation.lng.toFixed(5)}</span>`;
+                    }
+                }, 
+                (err) => { 
+                    statusEl.className = 'location-status error'; 
+                    statusEl.innerHTML = `<span>⚠️ लोकेशन नाही मिळाली (कृपया GPS चालू करा)</span>`; 
+                }, 
+                { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
+            );
+        }
+        
+        function openReportModal() { 
+            isSubmitting = false;
+            const submitBtn = document.querySelector('#reportForm .btn-submit');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fab fa-whatsapp"></i> सेव करा + WhatsApp';
+            document.getElementById('reportModal').classList.add('active'); 
+            document.getElementById('reportForm').reset(); 
+            document.getElementById('previewImg').classList.remove('show'); 
+            document.getElementById('previewImg').src = ''; 
+            
+            const statusEl = document.getElementById('locationStatus');
+            statusEl.className = 'location-status loading'; 
+            statusEl.innerHTML = '<span>📍 लोकेशन मिळवण्यासाठी "Auto Location" बटन दाबा</span>';
+        }
+        
+        function closeReportModal() { document.getElementById('reportModal').classList.remove('active'); }
+        function openCamera() { const input = document.getElementById('cameraInput'); input.click(); input.onchange = function(e){ if(e.target.files && e.target.files[0]){ const file=e.target.files[0]; const reader=new FileReader(); reader.onload=function(ev){ const preview=document.getElementById('previewImg'); preview.src=ev.target.result; preview.classList.add('show'); const photoInput=document.getElementById('photoInput'); const dt=new DataTransfer(); dt.items.add(file); photoInput.files=dt.files; }; reader.readAsDataURL(file); } }; }
+        function openGallery() { const input = document.getElementById('photoInput'); input.click(); input.onchange = function(e){ if(e.target.files && e.target.files[0]){ const file=e.target.files[0]; const reader=new FileReader(); reader.onload=function(ev){ const preview=document.getElementById('previewImg'); preview.src=ev.target.result; preview.classList.add('show'); }; reader.readAsDataURL(file); } }; }
+        
+        let pickerMap = null, pickerMarker = null, selectedLocation = null;
+        function pickLocationOnMap() {
+            document.getElementById('locationPickerModal').classList.add('active');
+            setTimeout(() => {
+                if (!pickerMap) {
+                    pickerMap = L.map('pickerMap', { center: [LONI.lat, LONI.lng], zoom: 15, attributionControl: false });
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(pickerMap);
+                    pickerMap.on('click', function(e){ const lat=e.latlng.lat, lng=e.latlng.lng; if(pickerMarker) pickerMap.removeLayer(pickerMarker); pickerMarker=L.marker([lat,lng],{draggable:true}).addTo(pickerMap); selectedLocation={lat:lat,lng:lng}; document.getElementById('pickerInfo').innerHTML=`📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`; });
+                } else { pickerMap.setView([LONI.lat, LONI.lng], 15); }
+                setTimeout(() => { if(pickerMap) pickerMap.invalidateSize(); }, 100);
+            }, 100);
+        }
+        
+        function confirmLocation() { if(!selectedLocation){ alert('❌ लोकेशन निवडा!'); return; } document.getElementById('reportLat').value=selectedLocation.lat; document.getElementById('reportLng').value=selectedLocation.lng; userLocation=selectedLocation; const statusEl=document.getElementById('locationStatus'); statusEl.className='location-status success'; statusEl.innerHTML=`<span>✅ Map: ${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}</span>`; closeLocationPicker(); }
+        function closeLocationPicker() { document.getElementById('locationPickerModal').classList.remove('active'); }
+        
+        document.getElementById('reportForm').addEventListener('submit', async function(e){
+            e.preventDefault();
+            if (isSubmitting) return;
+            
+            const file = document.getElementById('photoInput').files[0];
+            if(!file) { alert('❌ फोटो निवडा!'); return; }
+            
+            let lat = parseFloat(document.getElementById('reportLat').value);
+            let lng = parseFloat(document.getElementById('reportLng').value);
+            if(!lat || !lng || isNaN(lat)) { 
+                alert('❌ कृपया लोकेशन निवडा! (Auto Location किंवा Map वर)'); 
+                return; 
+            }
+            
+            isSubmitting = true;
+            const submitBtn = this.querySelector('.btn-submit');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> फोटो कंप्रेस होत आहे...';
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                compressImage(event.target.result, 800, 0.7, async function(compressedImage) {
+                    const newReport = {
+                        lat: lat,
+                        lng: lng,
+                        status: document.getElementById('reportStatus').value,
+                        description: document.getElementById('description').value,
+                        timestamp: new Date().toLocaleString('mr-IN'),
+                        image: compressedImage
+                    };
+                    
+                    sendWhatsAppDirect(newReport);
+                    
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> सेव हो रहा है...';
+                    
+                    const saved = await addReportToDatabase(newReport);
+                    
+                    if(!saved) {
+                        alert('❌ वेबसाइटवर सेव्ह झाले नाही! कृपया पुन्हा प्रयत्न करा.');
+                        isSubmitting = false;
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                        return;
+                    }
+                    
+                    await loadReports();
+                    closeReportModal();
+                    setTimeout(() => showSelectedCard(newReport.id), 300);
+                    
+                    setTimeout(() => {
+                        isSubmitting = false;
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }, 2000);
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        let resolveImageData = null;
+        function openResolveModal(reportId) {
+            document.getElementById('resolveReportId').value = reportId;
+            document.getElementById('resolvePreviewImg').classList.remove('show');
+            document.getElementById('resolvePreviewImg').src='';
+            document.getElementById('resolvePhotoStatus').textContent='फोटो निवडा - स्वच्छ जागेचा';
+            resolveImageData = null;
+            document.getElementById('resolveModal').classList.add('active');
+        }
+        function closeResolveModal(){ document.getElementById('resolveModal').classList.remove('active'); }
+        function handleResolveFile(file) {
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                compressImage(ev.target.result, 800, 0.7, function(compressed) {
+                    resolveImageData = compressed;
+                    const preview = document.getElementById('resolvePreviewImg');
+                    preview.src = resolveImageData;
+                    preview.classList.add('show');
+                    document.getElementById('resolvePhotoStatus').textContent='✅ फोटो तयार - आता हिरवा करा दाबा';
+                    document.getElementById('resolvePhotoStatus').style.color='var(--success)';
+                    document.getElementById('resolvePhotoStatus').style.background='#d1fae5';
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        document.getElementById('resolveCameraBtn').addEventListener('click', function() { const input = document.getElementById('resolveCameraInput'); input.value=''; input.onchange = function(e){ if(e.target.files && e.target.files[0]) handleResolveFile(e.target.files[0]); }; input.click(); });
+        document.getElementById('resolveGalleryBtn').addEventListener('click', function() { const input = document.getElementById('resolvePhotoInput'); input.value=''; input.onchange = function(e){ if(e.target.files && e.target.files[0]) handleResolveFile(e.target.files[0]); }; input.click(); });
+        
+        document.getElementById('hirvaButton').addEventListener('click', async function(e) {
+            e.preventDefault();
+            const reportId = document.getElementById('resolveReportId').value;
+            if(!reportId) { alert('❌ ID मिळाला नाही!'); return; }
+            if(!resolveImageData) { alert('❌ फोटो निवडा!'); return; }
+            const updated = await updateReportInDatabase(reportId, resolveImageData);
+            if(updated) { await loadReports(); closeResolveModal(); setTimeout(() => { showSelectedCard(reportId); alert('✅ सफाई झाली! 🟢 बिंदू हिरवा झाला - वेबसाइटवर अपडेट!'); }, 400); }
+        });
+        
+        function filterReports(){ const filters=['all','resolved','pending']; let idx=filters.indexOf(currentFilter); idx=(idx+1)%filters.length; currentFilter=filters[idx]; renderMarkers(allReports); }
+        function zoomToVillage(){ closeSelectedCard(); map.flyTo([LONI.lat, LONI.lng],16,{duration:1}); }
+        
+        function openZoneStatus(){ 
+            document.getElementById('zonePending').textContent=allReports.filter(r=>r.status==='pending').length; 
+            document.getElementById('zoneProgress').textContent=allReports.filter(r=>r.status==='in-progress').length; 
+            document.getElementById('zoneResolved').textContent=allReports.filter(r=>r.status==='resolved').length; 
+            document.getElementById('zoneTotal').textContent=allReports.length; 
+            
+            const list=document.getElementById('zoneReportList'); 
+            if(allReports.length===0){ 
+                list.innerHTML=`<div style="text-align:center;color:#6b7280;padding:2rem 1rem;font-weight:500;"><i class="fas fa-clipboard-check" style="font-size:2rem;color:#d1d5db;margin-bottom:0.5rem;display:block;"></i>कोणतीही तक्रार नाही</div>`; 
+            } else { 
+                list.innerHTML=allReports.slice().reverse().map(r=>{
+                    let statusColor = r.status==='resolved' ? '#10b981' : (r.status==='in-progress' ? '#f59e0b' : '#ef4444');
+                    let statusBg = r.status==='resolved' ? '#d1fae5' : (r.status==='in-progress' ? '#fef3c7' : '#fee2e2');
+                    let statusText = r.status==='resolved' ? '🟢 झाली' : (r.status==='in-progress' ? '🟡 प्रगतीत' : '🔴 बाकी');
+                    let borderColor = r.status==='resolved' ? '#10b981' : (r.status==='in-progress' ? '#f59e0b' : '#ef4444');
+                    
+                    return `<div class="zone-report-item" style="border-left-color:${borderColor}" onclick="showSelectedCard('${r.id}'); closeZoneStatus();">
+                        <div class="item-title">${r.description}</div>
+                        <div class="item-meta">
+                            <div class="item-time"><i class="far fa-clock"></i> ${r.timestamp}</div>
+                            <div class="item-status" style="color:${statusColor}; background:${statusBg};">${statusText}</div>
+                        </div>
+                    </div>`;
+                }).join(''); 
+            } 
+            document.getElementById('zoneModal').classList.add('active'); 
+        }
+        function closeZoneStatus(){ document.getElementById('zoneModal').classList.remove('active'); }
+        
+        function openAbout(){ document.getElementById('aboutPage').classList.add('active'); document.getElementById('aboutTotalReports').textContent=allReports.length; document.getElementById('aboutResolvedReports').textContent=allReports.filter(r=>r.status==='resolved').length; document.getElementById('aboutPendingReports').textContent=allReports.filter(r=>r.status!=='resolved').length; }
+        function closeAbout(){ document.getElementById('aboutPage').classList.remove('active'); }
+        
+        loadReports();
+        db.collection('reports').onSnapshot(
+            function(snapshot) { console.log("✅ Real-time update:", snapshot.size, "reports"); loadReports(); },
+            function(error) { console.error("❌ Real-time error:", error); }
+        );
+        
+        map.on('click', function(e) { 
+            if(e.originalEvent.target.closest('#selectedCard')) return; 
+            closeSelectedCard(); 
+        });
+        
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            const lat = parseFloat(urlParams.get('lat'));
+            const lng = parseFloat(urlParams.get('lng'));
+            if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+                setTimeout(function() {
+                    map.flyTo([lat, lng], 18, {duration: 1.5});
+                    if (id && id !== 'new') { showSelectedCard(id); }
+                }, 1500);
+            }
+        });
+    </script>
+</body>
+</html>
