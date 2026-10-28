@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>मेरा खाता — Khata</title>
+<style>
+  /* प्रोफेशनल शैली, सभी इमोजी हटाए गए, नीले-ग्रे रंग योजना */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Devanagari", sans-serif;
+    background: #f6f7f9; color: #101828; padding: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 800px; margin: auto; }
+  .card {
+    background: #fff; border: 1px solid #e4e7ec; border-radius: 12px;
+    padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(16,24,40,.06);
+  }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 16px; }
+  h2 { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: #344054; }
+  input, button {
+    width: 100%; padding: 11px 13px; margin: 6px 0;
+    border: 1px solid #d0d5dd; border-radius: 8px; font-size: 15px; font-family: inherit;
+  }
+  button {
+    background: #1d4ed8; color: #fff; border: none; font-weight: 600;
+    cursor: pointer; transition: background .15s ease;
+  }
+  button:hover { background: #1e40af; }
+  .btn-ghost { background: transparent; color: #475467; border: 1px solid #d0d5dd; }
+  .btn-ghost:hover { background: #f9fafb; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 8px; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid #e4e7ec; text-align: left; }
+  th { background: #f9fafb; font-size: 12px; font-weight: 600; color: #667085; text-transform: uppercase; }
+  .balance-box { background: #f9fafb; border-radius: 8px; padding: 16px; margin-top: 12px; }
+  .balance-label { font-size: 13px; color: #475467; margin-bottom: 4px; }
+  .balance-value { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .badge-credit { background: #fef3f2; color: #d92d20; }
+  .badge-payment { background: #ecfdf3; color: #079455; }
+  .hidden { display: none; }
+  .muted { color: #667085; font-size: 13px; }
+  .error { color: #d92d20; font-size: 13px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- लॉगिन -->
+  <div id="loginBox" class="card" style="max-width:380px;margin:60px auto;">
+    <h1>ग्राहक लॉगिन</h1>
+    <p class="muted" style="margin-bottom:16px;">अपना ईमेल और पासवर्ड दर्ज करें</p>
+    <input id="email" type="email" placeholder="ईमेल">
+    <input id="password" type="password" placeholder="पासवर्ड">
+    <button onclick="doLogin()">लॉगिन</button>
+    <p id="loginMsg" class="error hidden"></p>
+  </div>
+
+  <!-- डैशबोर्ड -->
+  <div id="main" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h1 style="margin:0;">मेरा खाता</h1>
+      <button class="btn-ghost" style="width:auto;padding:8px 14px;" onclick="doLogout()">लॉगआउट</button>
+    </div>
+
+    <div class="card">
+      <h2 id="myName"></h2>
+      <div class="balance-box">
+        <div class="balance-label">कुल बकाया</div>
+        <div class="balance-value" id="myBalance">₹0</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>सारा हिसाब</h2>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>तारीख</th><th>सामान</th><th>मात्रा</th><th>रेट</th><th>रकम</th><th>प्रकार</th></tr></thead>
+          <tbody id="myEntries"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>दैनिक रिपोर्ट</h2>
+      <input id="rDate" type="date" style="width:auto;margin-bottom:10px;">
+      <div id="rPreview" style="white-space:pre-line;background:#f9fafb;padding:16px;border-radius:8px;font-size:13.5px;line-height:1.6;"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import {
+  auth, db, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  collection, getDocs, query, where, getBalance, buildReportText
+} from './firebase-config.js';
+
+let me = null;
+
+window.doLogin = async () => {
+  const email = document.getElementById('email').value;
+  const pass = document.getElementById('password').value;
+  const msg = document.getElementById('loginMsg');
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch (e) {
+    msg.textContent = 'ईमेल या पासवर्ड गलत है';
+    msg.classList.remove('hidden');
+  }
+};
+window.doLogout = () => signOut(auth);
+
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    document.getElementById('loginBox').classList.add('hidden');
+    document.getElementById('main').classList.remove('hidden');
+    await loadMyData(user.email);
+  } else {
+    document.getElementById('loginBox').classList.remove('hidden');
+    document.getElementById('main').classList.add('hidden');
+  }
+});
+
+async function loadMyData(email) {
+  // केवल अपना डेटा क्वेरी करें (सुरक्षा नियम भी केवल अपना डेटा पढ़ने देते हैं)
+  const q = query(collection(db, 'customers'), where('email', '==', email));
+  const snap = await getDocs(q);
+  if (snap.empty) { alert('खाता नहीं मिला, कृपया एडमिन से संपर्क करें'); return; }
+  const d = snap.docs[0];
+  me = { id: d.id, ...d.data() };
+  render();
+}
+
+function render() {
+  document.getElementById('myName').textContent = 'नमस्ते, ' + me.name;
+  const bal = getBalance(me);
+  const balEl = document.getElementById('myBalance');
+  balEl.textContent = '₹' + bal.toFixed(2);
+  balEl.style.color = bal > 0 ? '#d92d20' : '#079455';
+
+  const sorted = [...(me.entries || [])].sort((a, b) => a.date.localeCompare(b.date));
+  document.getElementById('myEntries').innerHTML = sorted.map(e => `
+    <tr>
+      <td>${e.date}</td>
+      <td>${e.itemName || '—'}</td>
+      <td>${e.qty || '—'}</td>
+      <td>${e.rate ? '₹' + e.rate : '—'}</td>
+      <td>₹${Number(e.amount).toFixed(0)}</td>
+      <td><span class="badge ${e.type === 'credit' ? 'badge-credit' : 'badge-payment'}">
+        ${e.type === 'credit' ? 'उधारी' : 'जमा'}</span></td>
+    </tr>`).join('') || '<tr><td colspan="6" class="muted">कोई प्रविष्टि नहीं</td></tr>';
+
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('rDate').value = today;
+  updatePreview();
+}
+
+function updatePreview() {
+  if (!me) return;
+  const date = document.getElementById('rDate').value;
+  const { text } = buildReportText(me, date);
+  document.getElementById('rPreview').textContent = text;
+}
+document.getElementById('rDate').addEventListener('change', updatePreview);
+</script>
+</body>
+</html>
