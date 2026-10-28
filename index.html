@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Khata — My Account</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/4rc5Thg/DF7-CBAA4-DD07-4-D3-E-B545-8152-A851-F531.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #f8fafc; --surface: #fff; --surface-2: #f9fafb; --surface-3: #f1f5f9;
+    --border: #e2e8f0; --border-strong: #cbd5e1;
+    --text: #0f172a; --text-2: #475569; --text-3: #94a3b8;
+    --primary: #1d4ed8; --primary-hover: #1e40af;
+    --success: #059669; --success-soft: #ecfdf5;
+    --danger: #dc2626; --danger-soft: #fef2f2;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.08);
+    --shadow-xl: 0 20px 25px -5px rgba(15,23,42,.10);
+    --radius: 14px; --radius-sm: 10px;
+    --ease: cubic-bezier(.4,0,.2,1);
+  }
+  html, body { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Devanagari", sans-serif;
+    background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5;
+    padding: 16px; min-height: 100vh; -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 820px; margin: 0 auto; padding-bottom: 40px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+  h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+  .tiny { color: var(--text-3); font-size: 12.5px; }
+  .mono { font-variant-numeric: tabular-nums; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 20px; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 40px; height: 40px; border-radius: 11px; overflow: hidden;
+    box-shadow: 0 6px 16px rgba(29,78,216,.28);
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  }
+  .brand-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .brand-title { font-weight: 700; font-size: 17px; letter-spacing: -.02em; }
+  .brand-sub { font-size: 12.5px; color: var(--text-3); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+  .field { margin-bottom: 12px; }
+  label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+  input {
+    width: 100%; padding: 12px 14px; border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); font-size: 16px; color: var(--text);
+    background: var(--surface); outline: none; font-family: inherit;
+    transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
+  }
+  input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(29,78,216,.10); }
+  button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 18px; border: none; border-radius: var(--radius-sm);
+    background: var(--primary); color: #fff; font-size: 15px; font-weight: 600;
+    font-family: inherit; cursor: pointer; width: 100%;
+    transition: background .15s var(--ease), transform .08s var(--ease);
+  }
+  button:hover { background: var(--primary-hover); }
+  button:active { transform: scale(.98); }
+  button:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-sm { width: auto; padding: 8px 14px; font-size: 13.5px; background: transparent;
+    color: var(--text-2); border: 1px solid var(--border-strong); }
+  .btn-sm:hover { background: var(--surface-2); color: var(--text); }
+  .auth-wrap { max-width: 420px; margin: 6vh auto 0; }
+  .auth-wrap .card { padding: 30px; box-shadow: var(--shadow-xl); }
+  .auth-logo {
+    width: 52px; height: 52px; border-radius: 14px; overflow: hidden;
+    margin-bottom: 18px; box-shadow: 0 8px 20px rgba(29,78,216,.30);
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  }
+  .auth-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .auth-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.02em; }
+  .auth-sub { font-size: 14px; color: var(--text-2); margin-bottom: 22px; }
+  .balance-banner {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
+    border-radius: var(--radius); padding: 22px; margin-top: 12px; color: #fff;
+    box-shadow: 0 8px 24px rgba(29,78,216,.20);
+  }
+  .balance-banner .label { font-size: 12.5px; color: rgba(255,255,255,.85); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+  .balance-banner .value { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .table-wrap { overflow-x: auto; margin: 0 -8px; border-radius: var(--radius-sm); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th {
+    text-align: left; padding: 10px 12px; font-size: 11.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .05em; color: var(--text-3);
+    background: var(--surface-3); border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  tbody td { padding: 11px 12px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .badge-due { background: var(--danger-soft); color: var(--danger); border: 1px solid #fecaca; }
+  .badge-paid { background: var(--success-soft); color: var(--success); border: 1px solid #a7f3d0; }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .report-box {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 16px; margin-top: 12px; white-space: pre-line; font-size: 13px;
+    line-height: 1.7; color: var(--text-2); font-variant-numeric: tabular-nums;
+    max-height: 320px; overflow-y: auto; font-family: ui-monospace, Menlo, monospace;
+  }
+  .error { color: var(--danger); font-size: 13px; margin-top: 10px; }
+  .hidden { display: none !important; }
+  .divider { height: 1px; background: var(--border); margin: 18px 0; }
+  .empty-state { text-align: center; padding: 28px 16px; color: var(--text-3); font-size: 14px; }
+  .view { animation: fadeUp .3s var(--ease) both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translate3d(0,8px,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+  @media (max-width: 520px) {
+    body { padding: 12px; } .card { padding: 16px; }
+    .balance-banner .value { font-size: 26px; }
+    thead th, tbody td { padding: 9px 10px; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .no-print, .topbar, button { display: none !important; }
+    .card { box-shadow: none; border: 1px solid #ddd; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="loginView" class="view">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><img src="https://i.ibb.co/4rc5Thg/DF7-CBAA4-DD07-4-D3-E-B545-8152-A851-F531.png" alt="Khata"></div>
+        <div><div class="brand-title">Khata</div><div class="brand-sub">Customer ledger</div></div>
+      </div>
+    </div>
+    <div class="auth-wrap">
+      <div class="card">
+        <div class="auth-logo"><img src="https://i.ibb.co/4rc5Thg/DF7-CBAA4-DD07-4-D3-E-B545-8152-A851-F531.png" alt="Khata"></div>
+        <div class="auth-title">Sign in</div>
+        <div class="auth-sub">Enter the email and password provided by the shop owner.</div>
+        <div class="field">
+          <label class="lbl" for="email">Email</label>
+          <input id="email" type="email" placeholder="you@example.com" autocomplete="username">
+        </div>
+        <div class="field">
+          <label class="lbl" for="password">Password</label>
+          <input id="password" type="password" placeholder="Your password" autocomplete="current-password">
+        </div>
+        <button id="loginBtn" onclick="doLogin()">Sign in</button>
+        <p id="loginMsg" class="error hidden"></p>
+        <div class="divider"></div>
+        <p class="tiny" style="text-align:center;">Don't have an account? Contact the shop owner.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboardView" class="view hidden">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><img src="https://i.ibb.co/4rc5Thg/DF7-CBAA4-DD07-4-D3-E-B545-8152-A851-F531.png" alt="Khata"></div>
+        <div><div class="brand-title">Khata</div><div class="brand-sub">My account</div></div>
+      </div>
+      <button class="btn-sm" onclick="doLogout()">Sign out</button>
+    </div>
+    <div class="card">
+      <h2 id="myName">—</h2>
+      <div class="tiny" id="myEmail"></div>
+      <div class="balance-banner">
+        <div class="label">Outstanding balance</div>
+        <div class="value mono" id="myBalance">₹0</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Transaction history</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th>Type</th></tr></thead>
+          <tbody id="myEntries"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card no-print">
+      <h2>Daily report</h2>
+      <div class="field"><label class="lbl" for="rDate">Select date</label><input id="rDate" type="date"></div>
+      <div class="report-box" id="rPreview"></div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import {
+  auth, db, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  collection, getDocs, query, where, getBalance, buildReportText
+} from './firebase-config.js';
+
+let me = null;
+
+window.doLogin = async () => {
+  const email = document.getElementById("email").value.trim();
+  const pass = document.getElementById("password").value;
+  const btn = document.getElementById("loginBtn");
+  const msg = document.getElementById("loginMsg");
+  msg.classList.add("hidden");
+  if (!email || !pass) { msg.textContent = "Enter both email and password"; msg.classList.remove("hidden"); return; }
+  btn.disabled = true; btn.textContent = "Signing in...";
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch (e) {
+    msg.textContent = "Incorrect email or password";
+    msg.classList.remove("hidden");
+  } finally { btn.disabled = false; btn.textContent = "Sign in"; }
+};
+
+window.doLogout = () => signOut(auth);
+
+onAuthStateChanged(auth, async (user) => {
+  const loginView = document.getElementById("loginView");
+  const dashView = document.getElementById("dashboardView");
+  if (user) {
+    loginView.classList.add("hidden");
+    dashView.classList.remove("hidden");
+    await loadMyData(user.email);
+  } else {
+    loginView.classList.remove("hidden");
+    dashView.classList.add("hidden");
+    me = null;
+    document.getElementById("email").value = "";
+    document.getElementById("password").value = "";
+  }
+});
+
+async function loadMyData(email) {
+  try {
+    const q = query(collection(db, "customers"), where("email", "==", email));
+    const snap = await getDocs(q);
+    if (snap.empty) { alert("Your account is not found. Contact the shop owner."); signOut(auth); return; }
+    const d = snap.docs[0];
+    me = { id: d.id, ...d.data() };
+    render();
+  } catch (e) { alert("Error: " + e.message); }
+}
+
+function render() {
+  document.getElementById("myName").textContent = me.name || "—";
+  document.getElementById("myEmail").textContent = me.email || "";
+  document.getElementById("myBalance").textContent = "₹" + getBalance(me).toFixed(2);
+  const sorted = [...(me.entries || [])].sort((a, b) =>
+    a.date === b.date ? (a.id < b.id ? -1 : 1) : a.date.localeCompare(b.date)
+  );
+  document.getElementById("myEntries").innerHTML = sorted.length
+    ? sorted.map(e => `
+        <tr>
+          <td>${e.date}</td>
+          <td>${e.itemName || "—"}</td>
+          <td>${e.qty || "—"}</td>
+          <td>${e.rate ? "₹" + e.rate : "—"}</td>
+          <td class="mono" style="font-weight:600;">₹${Number(e.amount).toFixed(0)}</td>
+          <td><span class="badge ${e.type === "credit" ? "badge-due" : "badge-paid"}">
+            <span class="badge-dot"></span>${e.type === "credit" ? "Credit" : "Payment"}
+          </span></td>
+        </tr>`).join("")
+    : '<tr><td colspan="6" class="empty-state">No transactions yet.</td></tr>';
+  document.getElementById("rDate").value = new Date().toISOString().slice(0, 10);
+  updateReport();
+}
+
+function updateReport() {
+  if (!me) return;
+  const date = document.getElementById("rDate").value;
+  document.getElementById("rPreview").textContent = buildReportText(me, date).text;
+}
+document.getElementById("rDate").addEventListener("change", updateReport);
+document.getElementById("password").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+</script>
+</body>
+</html>
