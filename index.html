@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Khata — Customer Ledger</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --surface-2: #f9fafb;
+    --border: #e4e7ec; --border-strong: #d0d5dd;
+    --text: #101828; --text-2: #475467; --text-3: #98a2b3;
+    --primary: #1d4ed8; --primary-hover: #1e40af; --primary-soft: #eff4ff;
+    --success: #079455; --success-soft: #ecfdf3;
+    --danger: #d92d20; --danger-soft: #fef3f2;
+    --shadow-sm: 0 1px 2px rgba(16,24,40,.06);
+    --shadow-md: 0 4px 12px rgba(16,24,40,.06), 0 2px 4px rgba(16,24,40,.04);
+    --shadow-lg: 0 12px 32px rgba(16,24,40,.10), 0 4px 8px rgba(16,24,40,.04);
+    --radius: 12px; --radius-sm: 8px;
+    --ease: cubic-bezier(.4,0,.2,1);
+  }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, "Noto Sans Devanagari", sans-serif;
+    background: var(--bg); color: var(--text);
+    font-size: 15px; line-height: 1.5; padding: 16px; min-height: 100vh;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  .container { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; color: var(--text); }
+  h2 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 12px; letter-spacing: -.01em; }
+  .muted { color: var(--text-2); font-size: 13.5px; }
+  .tiny { color: var(--text-3); font-size: 12.5px; }
+  .mono { font-variant-numeric: tabular-nums; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 20px; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 15px;
+    box-shadow: 0 4px 12px rgba(29,78,216,.25); flex-shrink: 0;
+  }
+  .brand-title { font-weight: 700; font-size: 16px; letter-spacing: -.02em; }
+  .brand-sub { font-size: 12px; color: var(--text-3); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+    box-shadow: var(--shadow-sm); contain: layout style paint;
+  }
+  .card-tight { padding: 16px; }
+  .field { margin-bottom: 10px; }
+  label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+  input, select, textarea {
+    width: 100%; padding: 11px 13px; border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); font-size: 15px; color: var(--text);
+    background: var(--surface); outline: none;
+    transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
+    font-family: inherit; -webkit-appearance: none; appearance: none;
+  }
+  input::placeholder { color: var(--text-3); }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,78,216,.12);
+  }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+  }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .row > * { flex: 1; min-width: 120px; }
+  button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 16px; border: none; border-radius: var(--radius-sm);
+    background: var(--primary); color: #fff; font-size: 14.5px; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+    transition: background .15s var(--ease), transform .08s var(--ease);
+    box-shadow: 0 1px 2px rgba(16,24,40,.08); user-select: none; will-change: transform;
+  }
+  button:hover { background: var(--primary-hover); }
+  button:active { transform: scale(.985); }
+  button:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .btn-block { width: 100%; margin-top: 4px; }
+  .btn-sm { padding: 8px 14px; font-size: 13.5px; width: auto; }
+  .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border-strong); box-shadow: none; }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+  .btn-danger { background: var(--danger); }
+  .btn-danger:hover { background: #b42318; }
+  .btn-success { background: var(--success); }
+  .btn-success:hover { background: #067647; }
+  .btn-icon { padding: 7px; border-radius: 6px; width: auto; background: transparent; color: var(--text-3); box-shadow: none; }
+  .btn-icon:hover { background: var(--danger-soft); color: var(--danger); }
+  .list { display: flex; flex-direction: column; }
+  .list-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 12px; border-radius: var(--radius-sm); cursor: pointer;
+    transition: background .15s var(--ease); gap: 12px;
+  }
+  .list-item:hover { background: var(--surface-2); }
+  .list-item + .list-item { border-top: 1px solid var(--border); border-radius: 0; }
+  .li-main { flex: 1; min-width: 0; }
+  .li-title { font-weight: 600; font-size: 14.5px; color: var(--text); margin-bottom: 2px; }
+  .li-sub { font-size: 12.5px; color: var(--text-3); }
+  .li-amount { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; text-align: right; flex-shrink: 0; }
+  .amt-due { color: var(--danger); }
+  .amt-clear { color: var(--success); }
+  .balance-banner { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-top: 12px; }
+  .balance-banner .label { font-size: 12.5px; color: var(--text-2); font-weight: 500; margin-bottom: 4px; }
+  .balance-banner .value { font-size: 28px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .table-wrap { overflow-x: auto; margin: 0 -4px; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th {
+    text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .04em; color: var(--text-3);
+    background: var(--surface-2); border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  thead th:first-child { border-top-left-radius: var(--radius-sm); }
+  thead th:last-child { border-top-right-radius: var(--radius-sm); }
+  tbody td { padding: 11px 12px; border-bottom: 1px solid var(--border); color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background .12s var(--ease); }
+  tbody tr:hover { background: var(--surface-2); }
+  .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; letter-spacing: .01em; }
+  .badge-due { background: var(--danger-soft); color: var(--danger); }
+  .badge-paid { background: var(--success-soft); color: var(--success); }
+  .report-box {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 16px; margin-top: 12px; white-space: pre-line; font-size: 13.5px;
+    line-height: 1.65; color: var(--text-2); font-variant-numeric: tabular-nums;
+    max-height: 320px; overflow-y: auto;
+  }
+  .auth-wrap { max-width: 380px; margin: 8vh auto 0; }
+  .auth-wrap .card { padding: 28px; box-shadow: var(--shadow-lg); }
+  .auth-logo {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 18px;
+    margin-bottom: 16px; box-shadow: 0 6px 16px rgba(29,78,216,.28);
+  }
+  .auth-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; letter-spacing: -.02em; }
+  .auth-sub { font-size: 13.5px; color: var(--text-2); margin-bottom: 20px; }
+  .error { color: var(--danger); font-size: 13px; margin-top: 10px; }
+  .link { color: var(--primary); text-decoration: none; font-weight: 500; }
+  .link:hover { text-decoration: underline; }
+  .hidden { display: none !important; }
+  .spacer { height: 8px; }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .view { animation: fadeUp .28s var(--ease) both; will-change: transform, opacity; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translate3d(0, 6px, 0); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .view { animation: none; }
+    * { transition: none !important; }
+  }
+  @media (max-width: 520px) {
+    body { padding: 12px; }
+    .card { padding: 16px; }
+    h1 { font-size: 19px; }
+    .balance-banner .value { font-size: 24px; }
+    thead th, tbody td { padding: 9px 10px; }
+    .row > * { min-width: 100px; }
+  }
+  @media (min-width: 720px) { body { padding: 28px; } }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .no-print, .topbar, button, .auth-wrap { display: none !important; }
+    .card { box-shadow: none; border: 1px solid #ddd; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ============ ADMIN LOGIN ============ -->
+  <div id="adminLoginView" class="auth-wrap hidden">
+    <div class="card">
+      <div class="auth-logo">K</div>
+      <div class="auth-title">Admin Login</div>
+      <div class="auth-sub">Restricted access — authorized personnel only</div>
+      <div class="field">
+        <label class="lbl" for="adminPass">Password</label>
+        <input id="adminPass" type="password" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button class="btn-block" onclick="tryAdminLogin()">Sign in</button>
+      <p id="adminMsg" class="error hidden"></p>
+      <div class="divider"></div>
+      <p class="tiny" style="text-align:center;">
+        <a href="#" class="link" onclick="exitAdmin(event)">Return to customer page</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ============ ADMIN MAIN ============ -->
+  <div id="adminMainView" class="view hidden">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">K</div>
+        <div>
+          <div class="brand-title">Khata Admin</div>
+          <div class="brand-sub">Customer ledger management</div>
+        </div>
+      </div>
+      <button class="btn-ghost btn-sm" onclick="adminLogout()">Sign out</button>
+    </div>
+    <div class="card">
+      <h2>Add customer</h2>
+      <div class="field">
+        <label class="lbl" for="cName">Full name</label>
+        <input id="cName" placeholder="e.g. Kunal Sharma">
+      </div>
+      <div class="field">
+        <label class="lbl" for="cPhone">Mobile number (WhatsApp)</label>
+        <input id="cPhone" placeholder="10-digit number" inputmode="numeric">
+      </div>
+      <button class="btn-block" onclick="addCustomer()">Add customer</button>
+    </div>
+    <div class="card">
+      <h2>Customers</h2>
+      <div id="custList" class="list"><p class="tiny">No customers yet.</p></div>
+    </div>
+  </div>
+
+  <!-- ============ ADMIN DETAIL ============ -->
+  <div id="adminDetailView" class="view hidden">
+    <div class="topbar no-print">
+      <button class="btn-ghost btn-sm" onclick="backToAdmin()">← Back</button>
+    </div>
+    <div class="card">
+      <h2 id="dName">—</h2>
+      <div class="tiny" id="dPhone"></div>
+      <div class="balance-banner">
+        <div class="label">Outstanding balance</div>
+        <div class="value mono" id="dBalance">₹0</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>New entry</h2>
+      <div class="row">
+        <div class="field" style="flex:1;">
+          <label class="lbl" for="eType">Type</label>
+          <select id="eType">
+            <option value="credit">Goods given (credit)</option>
+            <option value="payment">Payment received</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1;">
+          <label class="lbl" for="eDate">Date</label>
+          <input id="eDate" type="date">
+        </div>
+      </div>
+      <div id="itemFields">
+        <div class="field">
+          <label class="lbl" for="eItem">Item name</label>
+          <input id="eItem" placeholder="e.g. Rice">
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1;">
+            <label class="lbl" for="eQty">Quantity</label>
+            <input id="eQty" type="number" step="any" placeholder="0">
+          </div>
+          <div class="field" style="flex:1;">
+            <label class="lbl" for="eRate">Rate (₹)</label>
+            <input id="eRate" type="number" step="any" placeholder="0">
+          </div>
+          <div class="field" style="flex:1;">
+            <label class="lbl" for="eAmount">Amount (₹)</label>
+            <input id="eAmount" type="number" step="any" placeholder="0">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="lbl" for="eNote">Note (optional)</label>
+        <input id="eNote" placeholder="Any remarks">
+      </div>
+      <button class="btn-block" onclick="addEntry()">Save entry</button>
+    </div>
+    <div class="card">
+      <h2>All entries</h2>
+      <div class="table-wrap">
+        <table id="entryTable">
+          <thead><tr><th>Date</th><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th>Type</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card no-print">
+      <h2>Daily report</h2>
+      <div class="field">
+        <label class="lbl" for="rDate">Select date</label>
+        <input id="rDate" type="date">
+      </div>
+      <div class="row">
+        <button class="btn-success" onclick="waSend()">Send on WhatsApp</button>
+        <button class="btn-ghost" onclick="window.print()">Print / PDF</button>
+      </div>
+      <div class="report-box" id="rPreview"></div>
+    </div>
+  </div>
+
+  <!-- ============ CUSTOMER VIEW ============ -->
+  <div id="customerView" class="view">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">K</div>
+        <div>
+          <div class="brand-title">Khata</div>
+          <div class="brand-sub">Customer ledger</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Find your account</h2>
+      <div class="field">
+        <label class="lbl" for="searchName">Your name</label>
+        <input id="searchName" placeholder="Type your name to search" oninput="renderCustomerList()">
+      </div>
+    </div>
+    <div class="card">
+      <h2>Accounts</h2>
+      <div id="customerList" class="list"><p class="tiny">No accounts found.</p></div>
+    </div>
+    <div id="customerDetail" class="hidden">
+      <div class="topbar no-print">
+        <button class="btn-ghost btn-sm" onclick="backToCustomerList()">← Back</button>
+      </div>
+      <div class="card">
+        <h2 id="cuName">—</h2>
+        <div class="tiny" id="cuPhone"></div>
+        <div class="balance-banner">
+          <div class="label">Your outstanding balance</div>
+          <div class="value mono" id="cuBalance">₹0</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Transaction history</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th>Type</th></tr></thead>
+            <tbody id="cuEntries"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= CONFIG ================= */
+const ADMIN_PASSWORD = "admin123";   // ← यहाँ अपना पासवर्ड बदलें
+const STORAGE_KEY = "khata_ledger_v1";
+
+/* ================= STATE ================= */
+let db = loadDB();
+let currentAdminCustomerId = null;
+let currentCustomerViewId = null;
+
+/* ================= STORAGE ================= */
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { customers: [] };
+    const parsed = JSON.parse(raw);
+    if (!parsed.customers) parsed.customers = [];
+    return parsed;
+  } catch (e) { return { customers: [] }; }
+}
+function saveDB() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch (e) {}
+}
+
+/* ================= HELPERS ================= */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+function fmtMoney(n) {
+  const num = Number(n) || 0;
+  return "₹" + num.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+}
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+function getBalance(c) {
+  let bal = 0;
+  (c.entries || []).forEach(e => {
+    bal += (e.type === "credit" ? Number(e.amount) : -Number(e.amount));
+  });
+  return bal;
+}
+function show(id) { document.getElementById(id).classList.remove("hidden"); }
+function hide(id) { document.getElementById(id).classList.add("hidden"); }
+
+/* ================= ROUTER ================= */
+function isAdminRequested() {
+  return new URLSearchParams(window.location.search).get("admin") === "1";
+}
+function route() {
+  ["adminLoginView","adminMainView","adminDetailView","customerView"].forEach(hide);
+  if (isAdminRequested()) {
+    if (sessionStorage.getItem("khata_admin") === "ok") {
+      show("adminMainView");
+      renderAdminList();
+    } else {
+      show("adminLoginView");
+      setTimeout(() => document.getElementById("adminPass").focus(), 50);
+    }
+  } else {
+    show("customerView");
+    renderCustomerList();
+  }
+}
+
+/* ================= ADMIN LOGIN ================= */
+function tryAdminLogin() {
+  const input = document.getElementById("adminPass").value;
+  const msg = document.getElementById("adminMsg");
+  if (input === ADMIN_PASSWORD) {
+    sessionStorage.setItem("khata_admin", "ok");
+    document.getElementById("adminPass").value = "";
+    msg.classList.add("hidden");
+    hide("adminLoginView");
+    show("adminMainView");
+    renderAdminList();
+  } else {
+    msg.textContent = "Incorrect password. Please try again.";
+    msg.classList.remove("hidden");
+  }
+}
+function adminLogout() {
+  sessionStorage.removeItem("khata_admin");
+  location.href = location.pathname;
+}
+function exitAdmin(ev) { ev.preventDefault(); location.href = location.pathname; }
+
+/* ================= ADMIN MAIN ================= */
+function addCustomer() {
+  const nameEl = document.getElementById("cName");
+  const phoneEl = document.getElementById("cPhone");
+  const name = nameEl.value.trim();
+  const phone = phoneEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+  db.customers.push({ id: uid(), name, phone, entries: [], createdAt: Date.now() });
+  saveDB();
+  nameEl.value = ""; phoneEl.value = "";
+  renderAdminList();
+}
+function renderAdminList() {
+  const box = document.getElementById("custList");
+  if (!db.customers.length) {
+    box.innerHTML = '<p class="tiny">No customers yet. Add one above.</p>';
+    return;
+  }
+  const sorted = [...db.customers].sort((a,b) => a.name.localeCompare(b.name));
+  box.innerHTML = sorted.map(c => {
+    const bal = getBalance(c);
+    const cls = bal > 0 ? "amt-due" : "amt-clear";
+    return `
+      <div class="list-item" onclick="openAdminCustomer('${c.id}')">
+        <div class="li-main">
+          <div class="li-title">${esc(c.name)}</div>
+          <div class="li-sub">${esc(c.phone) || "No phone"}</div>
+        </div>
+        <div class="li-amount ${cls} mono">${fmtMoney(bal)}</div>
+      </div>`;
+  }).join("");
+}
+
+/* ================= ADMIN DETAIL ================= */
+function openAdminCustomer(id) {
+  currentAdminCustomerId = id;
+  const c = db.customers.find(x => x.id === id);
+  if (!c) return;
+  hide("adminMainView");
+  show("adminDetailView");
+  document.getElementById("dName").textContent = c.name;
+  document.getElementById("dPhone").textContent = c.phone || "No phone";
+  document.getElementById("eDate").value = todayISO();
+  document.getElementById("rDate").value = todayISO();
+  renderAdminDetail();
+}
+function backToAdmin() {
+  hide("adminDetailView");
+  show("adminMainView");
+  renderAdminList();
+}
+function renderAdminDetail() {
+  const c = db.customers.find(x => x.id === currentAdminCustomerId);
+  if (!c) return;
+  const bal = getBalance(c);
+  const balEl = document.getElementById("dBalance");
+  balEl.textContent = fmtMoney(bal);
+  balEl.style.color = bal > 0 ? "var(--danger)" : "var(--success)";
+  const tbody = document.querySelector("#entryTable tbody");
+  const sorted = [...(c.entries || [])].sort((a,b) =>
+    a.date === b.date ? (a.id < b.id ? -1 : 1) : a.date.localeCompare(b.date)
+  );
+  if (!sorted.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="tiny">No entries yet.</td></tr>';
+  } else {
+    tbody.innerHTML = sorted.map(e => `
+      <tr>
+        <td>${esc(e.date)}</td>
+        <td>${esc(e.itemName) || "—"}</td>
+        <td>${e.qty ? esc(e.qty) : "—"}</td>
+        <td>${e.rate ? fmtMoney(e.rate) : "—"}</td>
+        <td class="mono">${fmtMoney(e.amount)}</td>
+        <td><span class="badge ${e.type === "credit" ? "badge-due" : "badge-paid"}">
+          ${e.type === "credit" ? "Credit" : "Payment"}
+        </span></td>
+        <td><button class="btn-icon" title="Delete" onclick="deleteEntry('${e.id}')">&times;</button></td>
+      </tr>`).join("");
+  }
+  updateReportPreview();
+}
+function addEntry() {
+  const c = db.customers.find(x => x.id === currentAdminCustomerId);
+  if (!c) return;
+  const type = document.getElementById("eType").value;
+  const date = document.getElementById("eDate").value || todayISO();
+  const note = document.getElementById("eNote").value.trim();
+  let amount = 0, itemName = "", qty = "", rate = "";
+  if (type === "credit") {
+    itemName = document.getElementById("eItem").value.trim();
+    qty = document.getElementById("eQty").value;
+    rate = document.getElementById("eRate").value;
+    amount = document.getElementById("eAmount").value;
+    if (!amount && qty && rate) amount = Number(qty) * Number(rate);
+    if (!amount) { document.getElementById("eAmount").focus(); return; }
+  } else {
+    amount = document.getElementById("eAmount").value;
+    if (!amount) { document.getElementById("eAmount").focus(); return; }
+  }
+  c.entries = c.entries || [];
+  c.entries.push({ id: uid(), date, type, itemName, qty, rate, amount: Number(amount), note });
+  saveDB();
+  ["eItem","eQty","eRate","eAmount","eNote"].forEach(id => { document.getElementById(id).value = ""; });
+  renderAdminDetail();
+}
+function deleteEntry(entryId) {
+  if (!confirm("Delete this entry?")) return;
+  const c = db.customers.find(x => x.id === currentAdminCustomerId);
+  if (!c) return;
+  c.entries = (c.entries || []).filter(e => e.id !== entryId);
+  saveDB();
+  renderAdminDetail();
+}
+
+/* ================= REPORT ================= */
+function buildReportText(c, date) {
+  const dayEntries = (c.entries || []).filter(e => e.date === date);
+  let totalCredit = 0, totalPayment = 0;
+  const lines = [];
+  dayEntries.forEach(e => {
+    if (e.type === "credit") {
+      totalCredit += Number(e.amount);
+      let d = e.itemName || "Goods";
+      if (e.qty) d += ` — ${e.qty}`;
+      if (e.rate) d += ` × ${fmtMoney(e.rate)}`;
+      lines.push(`• ${d} = ${fmtMoney(e.amount)}`);
+    } else {
+      totalPayment += Number(e.amount);
+      lines.push(`• Payment received = ${fmtMoney(e.amount)}`);
+    }
+  });
+  const balance = getBalance(c);
+  let text = `Namaste ${c.name},\n\nDate: ${date}\n\n`;
+  text += lines.length ? `Today's transactions:\n${lines.join("\n")}\n` : `No transactions on this date.\n`;
+  text += `\nToday's total credit: ${fmtMoney(totalCredit)}\n`;
+  text += `Today's total payment: ${fmtMoney(totalPayment)}\n`;
+  text += `--------------------------------\n`;
+  text += `Outstanding balance: ${fmtMoney(balance)}\n\n`;
+  text += `Thank you.`;
+  return { text, totalCredit, totalPayment, balance };
+}
+function updateReportPreview() {
+  const c = db.customers.find(x => x.id === currentAdminCustomerId);
+  if (!c) return;
+  const date = document.getElementById("rDate").value || todayISO();
+  const { text } = buildReportText(c, date);
+  document.getElementById("rPreview").textContent = text;
+}
+function waSend() {
+  const c = db.customers.find(x => x.id === currentAdminCustomerId);
+  if (!c) return;
+  if (!c.phone) { alert("No phone number saved for this customer."); return; }
+  const date = document.getElementById("rDate").value || todayISO();
+  const { text } = buildReportText(c, date);
+  const phone = c.phone.replace(/\D/g, "");
+  const intl = phone.length === 10 ? "91" + phone : phone;
+  window.open(`https://wa.me/${intl}?text=${encodeURIComponent(text)}`, "_blank");
+}
+
+/* ================= CUSTOMER VIEW ================= */
+function renderCustomerList() {
+  const q = (document.getElementById("searchName").value || "").trim().toLowerCase();
+  const box = document.getElementById("customerList");
+  const list = db.customers
+    .filter(c => !q || c.name.toLowerCase().includes(q))
+    .sort((a,b) => a.name.localeCompare(b.name));
+  if (!list.length) {
+    box.innerHTML = `<p class="tiny">${q ? "No matching account." : "No accounts found."}</p>`;
+    return;
+  }
+  box.innerHTML = list.map(c => {
+    const bal = getBalance(c);
+    const cls = bal > 0 ? "amt-due" : "amt-clear";
+    const label = bal > 0 ? fmtMoney(bal) : "Cleared";
+    return `
+      <div class="list-item" onclick="openCustomerAccount('${c.id}')">
+        <div class="li-main">
+          <div class="li-title">${esc(c.name)}</div>
+          <div class="li-sub">${esc(c.phone) || "—"}</div>
+        </div>
+        <div class="li-amount ${cls} mono">${label}</div>
+      </div>`;
+  }).join("");
+}
+function openCustomerAccount(id) {
+  currentCustomerViewId = id;
+  const c = db.customers.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById("customerDetail").classList.remove("hidden");
+  document.querySelectorAll("#customerView > .card").forEach(el => el.classList.add("hidden"));
+  document.getElementById("cuName").textContent = c.name;
+  document.getElementById("cuPhone").textContent = c.phone || "—";
+  const bal = getBalance(c);
+  const balEl = document.getElementById("cuBalance");
+  balEl.textContent = fmtMoney(bal);
+  balEl.style.color = bal > 0 ? "var(--danger)" : "var(--success)";
+  const tbody = document.getElementById("cuEntries");
+  const sorted = [...(c.entries || [])].sort((a,b) =>
+    a.date === b.date ? (a.id < b.id ? -1 : 1) : a.date.localeCompare(b.date)
+  );
+  tbody.innerHTML = sorted.length
+    ? sorted.map(e => `
+        <tr>
+          <td>${esc(e.date)}</td>
+          <td>${esc(e.itemName) || "—"}</td>
+          <td>${e.qty ? esc(e.qty) : "—"}</td>
+          <td>${e.rate ? fmtMoney(e.rate) : "—"}</td>
+          <td class="mono">${fmtMoney(e.amount)}</td>
+          <td><span class="badge ${e.type === "credit" ? "badge-due" : "badge-paid"}">
+            ${e.type === "credit" ? "Credit" : "Payment"}
+          </span></td>
+        </tr>`).join("")
+    : '<tr><td colspan="6" class="tiny">No transactions yet.</td></tr>';
+}
+function backToCustomerList() {
+  document.getElementById("customerDetail").classList.add("hidden");
+  document.querySelectorAll("#customerView > .card").forEach(el => el.classList.remove("hidden"));
+  renderCustomerList();
+}
+
+/* ================= EVENT WIRING ================= */
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("adminPass").addEventListener("keydown", e => {
+    if (e.key === "Enter") tryAdminLogin();
+  });
+  document.getElementById("eType").addEventListener("change", e => {
+    const fields = document.getElementById("itemFields");
+    if (e.target.value === "credit") fields.classList.remove("hidden");
+    else fields.classList.add("hidden");
+  });
+  ["eQty","eRate"].forEach(id => {
+    document.getElementById(id).addEventListener("input", () => {
+      const q = Number(document.getElementById("eQty").value);
+      const r = Number(document.getElementById("eRate").value);
+      if (q && r) document.getElementById("eAmount").value = (q * r).toFixed(2);
+    });
+  });
+  document.getElementById("rDate").addEventListener("change", updateReportPreview);
+  route();
+});
+</script>
+</body>
+</html>
