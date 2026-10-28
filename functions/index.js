@@ -2,8 +2,8 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 admin.initializeApp();
 
-// ⚠️ अपना एडमिन ईमेल यहाँ डालें
-const ADMIN_EMAIL = "admin@example.com";
+// ⚠️ यहाँ अपना ईमेल डालें
+const ADMIN_EMAIL = "yashramdassakharkar@gmail.com"; 
 
 exports.createCustomer = functions.https.onCall(async (data, context) => {
   if (!context.auth || context.auth.token.email !== ADMIN_EMAIL) {
