@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Khata — Admin</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/4rc5Thg/DF7-CBAA4-DD07-4-D3-E-B545-8152-A851-F531.png">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #f8fafc; --surface: #fff; --surface-2: #f9fafb; --surface-3: #f1f5f9;
+    --border: #e2e8f0; --border-strong: #cbd5e1;
+    --text: #0f172a; --text-2: #475569; --text-3: #94a3b8;
+    --primary: #1d4ed8; --primary-hover: #1e40af;
+    --success: #059669; --success-soft: #ecfdf5; --danger: #dc2626; --danger-soft: #fef2f2;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,.08);
+    --shadow-xl: 0 20px 25px -5px rgba(15,23,42,.10);
+    --radius: 14px; --radius-sm: 10px;
+    --ease: cubic-bezier(.4,0,.2,1);
+  }
+  html, body { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Devanagari", sans-serif;
+    background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5;
+    padding: 16px; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 900px; margin: 0 auto; padding-bottom: 40px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+  h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+  .tiny { color: var(--text-3); font-size: 12.5px; }
+  .mono { font-variant-numeric: tabular-nums; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 20px; gap: 12px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark { width: 40px; height: 40px; border-radius: 11px; overflow: hidden;
+    box-shadow: 0 6px 16px rgba(29,78,216,.28); background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+  .brand-mark img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .brand-title { font-weight: 700; font-size: 17px; letter-spacing: -.02em; }
+  .brand-sub { font-size: 12.5px; color: var(--text-3); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+  .field { margin-bottom: 12px; }
+  label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+  input, select {
+    width: 100%; padding: 12px 14px; border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); font-size: 16px; color: var(--text);
+    background: var(--surface); outline: none; font-family: inherit;
+    transition: border-color .15s var(--ease), box-shadow .15s var(--ease);
+  }
+  input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(29,78,216,.10); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > * { flex: 1; min-width: 130px; }
+  button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 18px; border: none; border-radius: var(--radius-sm);
+    background: var(--primary); color: #fff; font-size: 14.5px; font-weight: 600;
+    font-family: inherit; cursor: pointer; width: 100%;
+    transition: background .15s var(--ease), transform .08s var(--ease);
+  }
+  button:hover { background: var(--primary-hover); }
+  button:active { transform: scale(.98); }
+  button:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-sm { width: auto; padding: 8px 14px; font-size: 13.5px; }
+  .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border-strong); }
+  .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+  .btn-icon { padding: 6px 10px; width: auto; background: transparent; color: var(--text-3); border: 1px solid transparent; font-size: 13px; }
+  .btn-icon:hover { background: var(--danger-soft); color: var(--danger); }
+  .auth-wrap { max-width: 420px; margin: 6vh auto 0; }
+  .auth-wrap .card { padding: 30px; box-shadow: var(--shadow-xl); }
+  .auth-logo { width: 52px; height: 52px; border-radius: 14px; overflow: hidden;
+    margin-bottom: 18px; box-shadow: 0 8px 20px rgba(29,78,216,.30);
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+  .auth-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .auth-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.02em; }
+  .auth-sub { font-size: 14px; color: var(--text-2); margin-bottom: 22px; }
+  .list { display: flex; flex-direction: column; gap: 4px; }
+  .list-item { display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-radius: var(--radius-sm); cursor: pointer; gap: 12px;
+    border: 1px solid transparent; transition: background .15s var(--ease), border-color .15s var(--ease); }
+  .list-item:hover { background: var(--surface-2); border-color: var(--border); }
+  .li-main { flex: 1; min-width: 0; }
+  .li-title { font-weight: 600; font-size: 15px; }
+  .li-sub { font-size: 12.5px; color: var(--text-3); }
+  .li-amount { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .amt-due { color: var(--danger); } .amt-clear { color: var(--success); }
+  .balance-banner { background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
+    border-radius: var(--radius); padding: 22px; margin-top: 12px; color: #fff;
+    box-shadow: 0 8px 24px rgba(29,78,216,.20); }
+  .balance-banner .label { font-size: 12.5px; color: rgba(255,255,255,.85); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+  .balance-banner .value { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .table-wrap { overflow-x: auto; margin: 0 -8px; border-radius: var(--radius-sm); }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th { text-align: left; padding: 10px 12px; font-size: 11.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .05em; color: var(--text-3);
+    background: var(--surface-3); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  tbody td { padding: 11px 12px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+  .badge-due { background: var(--danger-soft); color: var(--danger); border: 1px solid #fecaca; }
+  .badge-paid { background: var(--success-soft); color: var(--success); border: 1px solid #a7f3d0; }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .report-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 16px; margin-top: 12px; white-space: pre-line; font-size: 13px; line-height: 1.7;
+    color: var(--text-2); font-variant-numeric: tabular-nums; max-height: 320px;
+    overflow-y: auto; font-family: ui-monospace, Menlo, monospace; }
+  .error { color: var(--danger); font-size: 13px; margin-top: 10px; }
+  .hidden { display: none !important; }
+  .divider { height: 1px; background: var(--border); margin: 18px 0; }
+  .empty-state { text-align: center; padding: 28px 16px; color: var(--text-3); font-size: 14px; }
+  .view { animation: fadeUp .3s var(--ease) both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translate3d(0,8px,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+  @media (max-width: 520px) {
+    body { padding: 12px; } .card { padding: 16px; }
+    .balance-banner .value { font-size: 26px; }
+    thead th, tbody td { padding: 9px 10px; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .no-print, .topbar, button { display: none !important; }
+    .card { box-shadow: none; border: 1px solid #ddd; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="loginView" class="view">
+    <div class="auth-wrap">
+      <div class="card">
+        <div class="auth-logo"><img src="https://i.ibb.co/4rc5Thg/DF7-CBAA4-DD07-4-D3-E-B545-8152-A851-F531.png" alt="Khata"></div>
+        <div class="auth-title">Admin sign in</div>
+        <div class="auth-sub">Only the shop owner can access this page.</div>
+        <div class="field"><label class="lbl" for="email">Email</label><input id="email" type="email" placeholder="admin@example.com" autocomplete="username"></div>
+        <div class="field"><label class="lbl" for="password">Password</label><input id="password" type="password" placeholder="Password" autocomplete="current-password"></div>
+        <button id="loginBtn" onclick="doLogin()">Sign in</button>
+        <p id="loginMsg" class="error hidden"></p>
+        <div class="divider"></div>
+        <p class="tiny" style="text-align:center;"><a href="./index.html" style="color:var(--primary);text-decoration:none;">← Customer page</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="mainView" class="view hidden">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><img src="https://i.ibb.co/4rc5Thg/DF7-CBAA4-DD07-4-D3-E-B545-8152-A851-F531.png" alt="Khata"></div>
+        <div><div class="brand-title">Khata Admin</div><div class="brand-sub">Customer ledger</div></div>
+      </div>
+      <button class="btn-ghost btn-sm" onclick="doLogout()">Sign out</button>
+    </div>
+    <div class="card">
+      <h2>Add customer</h2>
+      <div class="field"><label class="lbl" for="cName">Full name</label><input id="cName" placeholder="e.g. Kunal Sharma"></div>
+      <div class="row">
+        <div class="field" style="flex:1;"><label class="lbl" for="cPhone">Mobile</label><input id="cPhone" placeholder="10-digit" inputmode="numeric"></div>
+        <div class="field" style="flex:1;"><label class="lbl" for="cEmail">Login email</label><input id="cEmail" type="email" placeholder="customer@email.com"></div>
+      </div>
+      <div class="field"><label class="lbl" for="cPassword">Login password (min 6 chars)</label><input id="cPassword" type="text" placeholder="Set a password"></div>
+      <button id="addBtn" onclick="addCustomer()">Add customer</button>
+      <p class="tiny" style="margin-top:10px;">Data will be saved. IMPORTANT: Please go to Firebase Console -> Authentication -> Users -> Add user, and create their login with this email and password.</p>
+    </div>
+    <div class="card">
+      <h2>Customers</h2>
+      <input id="search" placeholder="Search customers..." oninput="renderList()" style="margin-bottom:12px;">
+      <div id="custList" class="list"></div>
+    </div>
+  </div>
+
+  <!-- DETAIL -->
+  <div id="detailView" class="view hidden">
+    <div class="topbar no-print">
+      <button class="btn-ghost btn-sm" onclick="backToMain()">← Back</button>
+      <button class="btn-icon" onclick="deleteCustomer()">Delete customer</button>
+    </div>
+    <div class="card">
+      <h2 id="dName">—</h2>
+      <div class="tiny" id="dMeta"></div>
+      <div class="balance-banner">
+        <div class="label">Outstanding balance</div>
+        <div class="value mono" id="dBalance">₹0</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>New entry</h2>
+      <div class="row">
+        <div class="field" style="flex:1;">
+          <label class="lbl" for="eType">Type</label>
+          <select id="eType">
+            <option value="credit">Goods given (credit)</option>
+            <option value="payment">Payment received</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1;"><label class="lbl" for="eDate">Date</label><input id="eDate" type="date"></div>
+      </div>
+      
+      <div id="itemFields">
+        <div class="field"><label class="lbl" for="eItem">Item name</label><input id="eItem" placeholder="e.g. Rice"></div>
+        <div class="row">
+          <div class="field" style="flex:1;"><label class="lbl" for="eQty">Quantity</label><input id="eQty" type="number" step="any" placeholder="0"></div>
+          <div class="field" style="flex:1;"><label class="lbl" for="eRate">Rate (₹)</label><input id="eRate" type="number" step="any" placeholder="0"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="eAmount" id="amountLabel">Amount (₹)</label>
+        <input id="eAmount" type="number" step="any" placeholder="0">
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="eNote">Note (optional)</label>
+        <input id="eNote" placeholder="Any remarks or details">
+      </div>
+      
+      <button onclick="addEntry()">Save entry</button>
+    </div>
+    <div class="card">
+      <h2>All entries</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th><th>Type</th><th></th></tr></thead>
+          <tbody id="entryTable"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card no-print">
+      <h2>Daily report</h2>
+      <div class="field"><label class="lbl" for="rDate">Date</label><input id="rDate" type="date"></div>
+      <div class="row">
+        <button onclick="waSend()" style="background:#25D366;">Send on WhatsApp</button>
+        <button class="btn-ghost" onclick="window.print()">Print / PDF</button>
+      </div>
+      <div class="report-box" id="rPreview"></div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import {
+  auth, db, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  collection, doc, getDocs, updateDoc, deleteDoc, query, where,
+  getBalance, buildReportText
+} from './firebase-config.js';
+
+// ⚠️ यहाँ अपना एडमिन ईमेल डालें
+const ADMIN_EMAIL = "yashramdassakharkar@gmail.com";
+
+let current = null;
+let allCustomers = [];
+
+window.doLogin = async () => {
+  const email = document.getElementById("email").value.trim();
+  const pass = document.getElementById("password").value;
+  const btn = document.getElementById("loginBtn");
+  const msg = document.getElementById("loginMsg");
+  msg.classList.add("hidden");
+  if (!email || !pass) { msg.textContent = "Enter both email and password"; msg.classList.remove("hidden"); return; }
+  btn.disabled = true; btn.textContent = "Signing in...";
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch (e) {
+    msg.textContent = "Incorrect email or password";
+    msg.classList.remove("hidden");
+  } finally { btn.disabled = false; btn.textContent = "Sign in"; }
+};
+
+window.doLogout = () => signOut(auth);
+
+onAuthStateChanged(auth, async (user) => {
+  const loginView = document.getElementById("loginView");
+  if (user) {
+    if (user.email !== ADMIN_EMAIL) {
+      alert("You are not authorized to access the admin panel.");
+      signOut(auth);
+      return;
+    }
+    loginView.classList.add("hidden");
+    document.getElementById("mainView").classList.remove("hidden");
+    await loadCustomers();
+  } else {
+    loginView.classList.remove("hidden");
+    document.getElementById("mainView").classList.add("hidden");
+    document.getElementById("detailView").classList.add("hidden");
+    document.getElementById("email").value = "";
+    document.getElementById("password").value = "";
+  }
+});
+
+async function loadCustomers() {
+  const snap = await getDocs(collection(db, "customers"));
+  allCustomers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderList();
+}
+
+window.renderList = function() {
+  const q = (document.getElementById("search").value || "").toLowerCase();
+  const filtered = allCustomers
+    .filter(c => !q || (c.name || "").toLowerCase().includes(q) || (c.email || "").toLowerCase().includes(q))
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  const box = document.getElementById("custList");
+  if (!filtered.length) { box.innerHTML = '<div class="empty-state">No customers yet.</div>'; return; }
+  box.innerHTML = filtered.map(c => {
+    const bal = getBalance(c);
+    const cls = bal > 0 ? "amt-due" : "amt-clear";
+    return `<div class="list-item" onclick="openCustomer('${c.id}')">
+      <div class="li-main">
+        <div class="li-title">${escapeHtml(c.name)}</div>
+        <div class="li-sub">${escapeHtml(c.email || "")} · ${escapeHtml(c.phone || "")}</div>
+      </div>
+      <div class="li-amount ${cls}">₹${bal.toFixed(0)}</div>
+    </div>`;
+  }).join("");
+};
+
+window.addCustomer = async () => {
+  const name = document.getElementById("cName").value.trim();
+  const phone = document.getElementById("cPhone").value.trim();
+  const email = document.getElementById("cEmail").value.trim();
+  const password = document.getElementById("cPassword").value.trim();
+  
+  if (!name || !email || !password) { alert("Name, email and password are required"); return; }
+  if (password.length < 6) { alert("Password must be at least 6 characters"); return; }
+  
+  const btn = document.getElementById("addBtn");
+  btn.disabled = true; btn.textContent = "Saving...";
+  
+  try {
+    const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js");
+    await addDoc(collection(db, "customers"), {
+      name, phone, email, entries: [], createdAt: Date.now()
+    });
+    
+    document.getElementById("cName").value = "";
+    document.getElementById("cPhone").value = "";
+    document.getElementById("cEmail").value = "";
+    document.getElementById("cPassword").value = "";
+    await loadCustomers();
+    
+    alert(`Customer record saved successfully!\n\nIMPORTANT: Please go to Firebase Console -> Authentication -> Users -> Add user, and create their login with email: ${email} and password: ${password}`);
+    
+  } catch (e) {
+    console.error(e);
+    alert("Error: " + (e.message || "Something went wrong"));
+  } finally {
+    btn.disabled = false; btn.textContent = "Add customer";
+  }
+};
+
+window.openCustomer = function(id) {
+  current = allCustomers.find(c => c.id === id);
+  if (!current) return;
+  document.getElementById("mainView").classList.add("hidden");
+  document.getElementById("detailView").classList.remove("hidden");
+  document.getElementById("dName").textContent = current.name || "—";
+  document.getElementById("dMeta").textContent = (current.email || "") + (current.phone ? " · " + current.phone : "");
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById("eDate").value = today;
+  document.getElementById("rDate").value = today;
+  
+  // फॉर्म को रिसेट करें
+  document.getElementById("eType").value = "credit";
+  document.getElementById("itemFields").style.display = "block";
+  document.getElementById("amountLabel").textContent = "Amount (₹)";
+  document.getElementById("eAmount").placeholder = "0";
+  document.getElementById("eNote").placeholder = "Any remarks or details";
+  
+  renderDetail();
+};
+
+window.backToMain = function() {
+  document.getElementById("detailView").classList.add("hidden");
+  document.getElementById("mainView").classList.remove("hidden");
+  loadCustomers();
+};
+
+function renderDetail() {
+  document.getElementById("dBalance").textContent = "₹" + getBalance(current).toFixed(2);
+  const sorted = [...(current.entries || [])].sort((a, b) =>
+    a.date === b.date ? (a.id < b.id ? -1 : 1) : a.date.localeCompare(b.date)
+  );
+  const tb = document.getElementById("entryTable");
+  tb.innerHTML = sorted.length
+    ? sorted.map(e => `
+        <tr>
+          <td>${e.date}</td>
+          <td>${escapeHtml(e.itemName) || "—"}</td>
+          <td>${e.qty || "—"}</td>
+          <td>${e.rate ? "₹" + e.rate : "—"}</td>
+          <td class="mono" style="font-weight:600;">₹${Number(e.amount).toFixed(0)}</td>
+          <td><span class="badge ${e.type === "credit" ? "badge-due" : "badge-paid"}">
+            <span class="badge-dot"></span>${e.type === "credit" ? "Credit" : "Payment"}
+          </span></td>
+          <td><button class="btn-icon" onclick="delEntry('${e.id}')">×</button></td>
+        </tr>`).join("")
+    : '<tr><td colspan="7" class="empty-state">No entries yet.</td></tr>';
+  updateReport();
+}
+
+window.addEntry = async () => {
+  const type = document.getElementById("eType").value;
+  const date = document.getElementById("eDate").value || new Date().toISOString().slice(0, 10);
+  const note = document.getElementById("eNote").value.trim();
+  let amount = 0, itemName = "", qty = "", rate = "";
+  
+  amount = document.getElementById("eAmount").value;
+  
+  if (type === "credit") {
+    itemName = document.getElementById("eItem").value.trim();
+    qty = document.getElementById("eQty").value;
+    rate = document.getElementById("eRate").value;
+    if (!amount && qty && rate) amount = Number(qty) * Number(rate);
+    if (!amount) { alert("Enter amount or quantity × rate"); return; }
+  } else {
+    if (!amount) { alert("Enter amount"); return; }
+  }
+  
+  const entry = { id: Date.now().toString(), date, type, itemName, qty, rate, amount: Number(amount), note };
+  const newEntries = [...(current.entries || []), entry];
+  await updateDoc(doc(db, "customers", current.id), { entries: newEntries });
+  current.entries = newEntries;
+  
+  ["eItem","eQty","eRate","eAmount","eNote"].forEach(id => document.getElementById(id).value = "");
+  renderDetail();
+};
+
+window.delEntry = async function(entryId) {
+  if (!confirm("Delete this entry?")) return;
+  const newEntries = (current.entries || []).filter(e => e.id !== entryId);
+  await updateDoc(doc(db, "customers", current.id), { entries: newEntries });
+  current.entries = newEntries;
+  renderDetail();
+};
+
+window.deleteCustomer = async function() {
+  if (!confirm(`Delete "${current.name}" and all their transactions? This cannot be undone.`)) return;
+  await deleteDoc(doc(db, "customers", current.id));
+  backToMain();
+};
+
+function updateReport() {
+  const date = document.getElementById("rDate").value;
+  document.getElementById("rPreview").textContent = buildReportText(current, date).text;
+}
+document.getElementById("rDate").addEventListener("change", updateReport);
+
+window.waSend = function() {
+  if (!current.phone) { alert("No phone number"); return; }
+  const date = document.getElementById("rDate").value;
+  const { text } = buildReportText(current, date);
+  const phone = current.phone.replace(/\D/g, "");
+  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(text)}`, "_blank");
+};
+
+document.getElementById("eType").addEventListener("change", e => {
+  const itemFields = document.getElementById("itemFields");
+  const amountLabel = document.getElementById("amountLabel");
+  const amountInput = document.getElementById("eAmount");
+  const noteInput = document.getElementById("eNote");
+  
+  if (e.target.value === "credit") {
+    itemFields.style.display = "block";
+    amountLabel.textContent = "Amount (₹)";
+    amountInput.placeholder = "0";
+    noteInput.placeholder = "Any remarks or details";
+  } else {
+    itemFields.style.display = "none";
+    amountLabel.textContent = "Received Amount (₹)";
+    amountInput.placeholder = "Enter amount received";
+    noteInput.placeholder = "e.g. Paid for Rice, Old balance cleared, etc.";
+  }
+});
+
+["eQty","eRate"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    const q = Number(document.getElementById("eQty").value);
+    const r = Number(document.getElementById("eRate").value);
+    if (q && r) document.getElementById("eAmount").value = (q * r).toFixed(2);
+  });
+});
+document.getElementById("password").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+</script>
+</body>
+</html>
