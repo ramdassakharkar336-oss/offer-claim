@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Admin — QuickPay</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { touch-action: pan-y; -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f172a; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .admin-card {
+    background: #fff; border-radius: 20px; width: 100%; max-width: 420px;
+    overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .admin-header { background: #111827; padding: 26px; color: #fff; }
+  .admin-header h2 { font-size: 18px; font-weight: 700; }
+  .admin-header p { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+  .admin-body { padding: 26px; }
+  .field-label { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px; display: block; }
+  .input-wrap { position: relative; margin-bottom: 16px; }
+  .input-wrap .rupee {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    font-size: 18px; color: #9ca3af; font-weight: 600;
+  }
+  input[type="number"] {
+    width: 100%; padding: 15px 16px 15px 40px; font-size: 18px; font-weight: 600;
+    border: 2px solid #e5e7eb; border-radius: 12px; outline: none;
+    transition: all 0.2s; color: #111827;
+  }
+  input[type="number"]:focus { border-color: #5f259f; box-shadow: 0 0 0 4px rgba(95,37,159,0.12); }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .btn {
+    width: 100%; padding: 15px; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-primary { background: linear-gradient(135deg, #5f259f, #7c3aed); color: #fff; box-shadow: 0 8px 20px rgba(95,37,159,0.35); }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-copy { background: #f0fdf4; color: #16a34a; border: 2px solid #bbf7d0; margin-top: 10px; }
+  .btn-wa { background: #25D366; color: #fff; margin-top: 10px; }
+  .result-box {
+    display: none; margin-top: 20px; padding: 16px;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+  }
+  .result-box .lbl { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .result-box .link-text {
+    font-size: 12px; color: #0f172a; word-break: break-all;
+    background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;
+  }
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: #111827; color: #fff; padding: 12px 22px; border-radius: 12px;
+    font-size: 13px; font-weight: 600; opacity: 0; transition: all 0.3s ease; z-index: 999;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+<div class="admin-card">
+  <div class="admin-header">
+    <h2>🔐 Admin Panel</h2>
+    <p>Enter amount and get customer link</p>
+  </div>
+  <div class="admin-body">
+    <label class="field-label">Amount / राशि</label>
+    <div class="input-wrap">
+      <span class="rupee">₹</span>
+      <input type="number" id="adminAmount" placeholder="350" min="1">
+    </div>
+    <button class="btn btn-primary" onclick="generateLink()">
+      <span>⚡</span> Generate Link
+    </button>
+
+    <div class="result-box" id="resultBox">
+      <div class="lbl">Customer Link / ग्राहक लिंक</div>
+      <div class="link-text" id="linkText"></div>
+      <button class="btn btn-copy" onclick="copyLink()">
+        <span>📋</span> Copy Link
+      </button>
+      <button class="btn btn-wa" onclick="shareWhatsApp()">
+        <span>📲</span> Share on WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Copied!</div>
+
+<script>
+let currentLink = "";
+let currentAmount = 0;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function generateLink() {
+  const amt = document.getElementById('adminAmount').value;
+  if (!amt || amt <= 0) { alert('Please enter a valid amount'); return; }
+
+  currentAmount = amt;
+
+  // index.html पर ले जाने वाला लिंक (कस्टमर के लिए)
+  const base = window.location.origin + window.location.pathname.replace('admin.html', 'index.html');
+  currentLink = `${base}?am=${amt}`;
+
+  document.getElementById('linkText').textContent = currentLink;
+  document.getElementById('resultBox').style.display = 'block';
+}
+
+function copyLink() {
+  if (!currentLink) return;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(currentLink)
+      .then(() => showToast('✅ Link copied!'))
+      .catch(() => fallbackCopy(currentLink));
+  } else fallbackCopy(currentLink);
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); showToast('✅ Link copied!'); }
+  catch(e) { showToast('❌ Copy failed'); }
+  document.body.removeChild(ta);
+}
+
+function shareWhatsApp() {
+  if (!currentLink) return;
+  const msg = `नमस्ते! 🙏\n\nकृपया *₹${currentAmount}* का भुगतान करें।\n\n👇 नीचे लिंक पर क्लिक करें:\n${currentLink}\n\nधन्यवाद! ✨`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+</script>
+</body>
+</html>
