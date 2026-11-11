@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SareeStore – Online Shopping</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="css/shared.css" />
+<link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div class="auth-wrap" id="loginPage">
+  <div class="auth-card">
+    <div class="brand"><i class="fas fa-store"></i> SareeStore</div>
+    <div class="brand-sub">Login to continue shopping</div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Mobile / Email</label>
+        <input type="text" id="loginEmail" class="form-input" placeholder="9876543210 or email@example.com" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" class="form-input" placeholder="Enter password" required />
+      </div>
+      <div class="auth-error" id="loginError">Invalid credentials</div>
+      <button type="submit" class="btn btn-primary btn-block">Login</button>
+    </form>
+    <div class="auth-switch">New here? <a onclick="showSignup()">Create account</a></div>
+  </div>
+</div>
+
+<!-- ===== SIGNUP ===== -->
+<div class="auth-wrap" id="signupPage" style="display:none">
+  <div class="auth-card">
+    <div class="brand"><i class="fas fa-store"></i> SareeStore</div>
+    <div class="brand-sub">Create your free account</div>
+    <form id="signupForm">
+      <div class="form-group"><label>Full Name</label>
+        <input type="text" id="signupName" class="form-input" required /></div>
+      <div class="form-group"><label>Mobile</label>
+        <input type="tel" id="signupMobile" class="form-input" pattern="[0-9]{10}" required /></div>
+      <div class="form-group"><label>Email (optional)</label>
+        <input type="email" id="signupEmail" class="form-input" /></div>
+      <div class="form-group"><label>Password</label>
+        <input type="password" id="signupPassword" class="form-input" minlength="6" required /></div>
+      <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+    </form>
+    <div class="auth-switch">Already have? <a onclick="showLogin()">Login</a></div>
+  </div>
+</div>
+
+<!-- ===== ADDRESS ===== -->
+<div class="address-page" id="addressPage">
+  <div class="address-card">
+    <h2><i class="fas fa-map-marker-alt"></i> Delivery Address</h2>
+    <p class="sub">Where should we deliver your order?</p>
+    <form id="addressForm">
+      <div class="form-group"><label>Full Name</label>
+        <input type="text" id="addrName" class="form-input" required /></div>
+      <div class="form-group"><label>Mobile</label>
+        <input type="tel" id="addrMobile" class="form-input" pattern="[0-9]{10}" required /></div>
+      <div class="form-group"><label>Address Line</label>
+        <input type="text" id="addrLine1" class="form-input" required /></div>
+      <div class="form-group"><label>Landmark (optional)</label>
+        <input type="text" id="addrLine2" class="form-input" /></div>
+      <div class="form-group"><label>City</label>
+        <input type="text" id="addrCity" class="form-input" required /></div>
+      <div class="form-group"><label>Pincode</label>
+        <input type="text" id="addrPincode" class="form-input" pattern="[0-9]{6}" required /></div>
+      <div class="form-group"><label>State</label>
+        <select id="addrState" class="form-select" required>
+          <option value="">Select State</option>
+          <option>Delhi</option><option>Uttar Pradesh</option>
+          <option>Maharashtra</option><option>Tamil Nadu</option>
+          <option>Karnataka</option><option>Gujarat</option>
+          <option>Rajasthan</option><option>Punjab</option>
+          <option>West Bengal</option><option>Bihar</option>
+          <option>Madhya Pradesh</option><option>Haryana</option>
+          <option>Other</option>
+        </select></div>
+      <button type="submit" class="btn btn-orange btn-block">Save Address</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== MAIN STORE ===== -->
+<div id="mainStore" style="display:none">
+
+  <!-- HEADER -->
+  <header class="main-header">
+    <div class="header-inner">
+      <div class="header-brand" id="brandHeader">
+        <i class="fas fa-store"></i> Saree<span>Store</span>
+      </div>
+
+      <div class="search-bar">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="globalSearch" placeholder="Search for products, brands..." />
+        <button class="search-btn"><i class="fas fa-search"></i> Search</button>
+      </div>
+
+      <div class="header-actions">
+        <button class="header-action" onclick="goBackToAddress()">
+          <span class="top-line">Hello,</span>
+          <span class="bottom-line"><span id="userNameDisplay">User</span></span>
+        </button>
+        <button class="header-action cart" onclick="openCart()">
+          <i class="fas fa-shopping-cart"></i>
+          <span>Cart</span>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CATEGORY BAR -->
+  <div class="category-bar">
+    <div class="category-bar-inner" id="categoryTabs">
+      <button class="cat-link active" data-cat="all">
+        <i class="fas fa-th-large"></i> All
+      </button>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- FILTERS -->
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label>Fabric</label>
+        <select id="filterFabric">
+          <option value="all">All</option>
+          <option value="silk">Silk</option>
+          <option value="cotton">Cotton</option>
+          <option value="georgette">Georgette</option>
+          <option value="chiffon">Chiffon</option>
+          <option value="linen">Linen</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Max Price</label>
+        <span class="filter-price-label" id="priceLabel">₹10000</span>
+        <input type="range" id="priceRange" min="500" max="10000" step="100" value="10000" />
+      </div>
+    </div>
+
+    <!-- PRODUCT GRID -->
+    <div class="product-grid" id="productGrid"></div>
+
+    <!-- LOAD MORE -->
+    <div class="load-more-wrap" id="loadMoreWrap" style="display:none">
+      <button class="btn-load-more" id="loadMoreBtn" onclick="loadMore()">Load More</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CART MODAL ===== -->
+<div class="cart-modal" id="cartModal">
+  <div class="cart-box">
+    <button class="close-x" onclick="closeCart()"><i class="fas fa-times"></i></button>
+    <h2><i class="fas fa-shopping-cart"></i> Your Cart</h2>
+    <div id="cartItemsList"></div>
+  </div>
+</div>
+
+<!-- ===== DETAIL MODAL ===== -->
+<div class="detail-modal" id="detailModal">
+  <div class="detail-box">
+    <button class="close-x" onclick="closeDetail()" style="position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:#f5f5f5;border:none;cursor:pointer;z-index:5;">
+      <i class="fas fa-times"></i>
+    </button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- ===== CHECKOUT ===== -->
+<div class="checkout-page" id="checkoutPage">
+  <div class="checkout-box">
+    <div class="checkout-header">
+      <div class="brand"><i class="fas fa-store"></i> SareeStore</div>
+      <div class="step-indicator">Step <b>2</b> of 3</div>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="goBackToStore()" style="margin-bottom:16px">
+      <i class="fas fa-arrow-left"></i> Back to Store
+    </button>
+
+    <div class="delivery-block">
+      <div class="label">Delivery to</div>
+      <div class="addr-name" id="ckName">—</div>
+      <div class="addr-full" id="ckAddr">—</div>
+      <a class="change-link" onclick="changeAddress()"><i class="fas fa-pen"></i> Change</a>
+    </div>
+
+    <div class="section-heading"><i class="fas fa-mobile-alt"></i> UPI Payment</div>
+    <div class="payment-option selected" data-pay="phonepe" onclick="selectPayment(this,'phonepe')">
+      <div class="p-icon"><i class="fas fa-mobile-alt" style="color:#5f259f"></i></div>
+      <div class="p-det"><div class="p-name">PhonePe</div><div class="p-sub">Pay via PhonePe UPI</div></div>
+      <div class="radio"></div>
+    </div>
+    <div class="payment-option" data-pay="gpay" onclick="selectPayment(this,'gpay')">
+      <div class="p-icon"><i class="fab fa-google-pay" style="color:#4285f4"></i></div>
+      <div class="p-det"><div class="p-name">Google Pay</div><div class="p-sub">Pay via GPay</div></div>
+      <div class="radio"></div>
+    </div>
+    <div class="payment-option" data-pay="paytm" onclick="selectPayment(this,'paytm')">
+      <div class="p-icon"><i class="fas fa-wallet" style="color:#003087"></i></div>
+      <div class="p-det"><div class="p-name">Paytm</div><div class="p-sub">Pay via Paytm UPI</div></div>
+      <div class="radio"></div>
+    </div>
+
+    <div class="section-heading"><i class="fas fa-credit-card"></i> Cards</div>
+    <div class="payment-option" data-pay="visa" onclick="selectPayment(this,'visa')">
+      <div class="p-icon"><i class="fas fa-credit-card" style="color:#1a1f71"></i></div>
+      <div class="p-det"><div class="p-name">Visa</div><div class="p-sub">Credit / Debit Card</div></div>
+      <div class="radio"></div>
+    </div>
+    <div class="payment-option" data-pay="mastercard" onclick="selectPayment(this,'mastercard')">
+      <div class="p-icon"><i class="fas fa-credit-card" style="color:#eb001b"></i></div>
+      <div class="p-det"><div class="p-name">Mastercard</div><div class="p-sub">Credit / Debit Card</div></div>
+      <div class="radio"></div>
+    </div>
+    <div class="payment-option" data-pay="rupay" onclick="selectPayment(this,'rupay')">
+      <div class="p-icon"><i class="fas fa-credit-card" style="color:#0f7b3a"></i></div>
+      <div class="p-det"><div class="p-name">RuPay</div><div class="p-sub">Credit / Debit Card</div></div>
+      <div class="radio"></div>
+    </div>
+
+    <div class="order-summary-box" id="orderSummary"></div>
+
+    <button class="btn btn-orange btn-block" style="margin-top:20px" onclick="showConfirm()">
+      <i class="fas fa-lock"></i> Place Order
+    </button>
+    <p style="text-align:center;font-size:12px;color:#878787;margin-top:10px">
+      <i class="fas fa-shield-alt"></i> Secure & encrypted payment
+    </p>
+  </div>
+</div>
+
+<!-- ===== CONFIRM MODAL ===== -->
+<div class="confirm-modal" id="confirmModal">
+  <div class="confirm-box">
+    <h3>Confirm Order</h3>
+    <div class="amount" id="confirmAmt">₹0</div>
+    <p>Pay via <b id="confirmMethod">PhonePe</b></p>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-primary" onclick="processPayment()">Pay Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===== SCRIPTS ===== -->
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
