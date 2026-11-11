@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Panel – SareeStore</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="css/shared.css" />
+<link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="admin-login-wrap" id="adminLogin">
+  <div class="admin-login-card">
+    <div class="logo"><i class="fas fa-shield-alt"></i> Admin Panel</div>
+    <p class="sub">Sign in to manage your store</p>
+    <form id="adminLoginForm">
+      <div class="form-group"><label>Email</label>
+        <input type="email" id="adminEmail" class="form-input" required /></div>
+      <div class="form-group"><label>Password</label>
+        <input type="password" id="adminPass" class="form-input" required /></div>
+      <div class="auth-error" id="adminErr">Invalid credentials</div>
+      <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="admin-app" id="adminApp">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="side-brand"><i class="fas fa-store"></i> Saree<span>Store</span></div>
+
+    <div class="side-label">Main</div>
+    <button class="side-link active" data-page="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</button>
+    <button class="side-link" data-page="products"><i class="fas fa-box"></i> Products</button>
+    <button class="side-link" data-page="orders"><i class="fas fa-shopping-bag"></i> Orders</button>
+
+    <div class="side-label">Content</div>
+    <button class="side-link" data-page="gallery"><i class="fas fa-images"></i> Gallery</button>
+    <button class="side-link" data-page="categories"><i class="fas fa-tags"></i> Categories</button>
+
+    <div class="side-label">System</div>
+    <button class="side-link" data-page="settings"><i class="fas fa-cog"></i> Settings</button>
+
+    <div class="side-footer">
+      <div class="side-user">
+        <div class="av" id="adminAv">A</div>
+        <div class="info">
+          <div class="n" id="adminName">Admin</div>
+          <div class="r">Administrator</div>
+        </div>
+      </div>
+      <button class="side-link" onclick="logout()" style="color:#ff6b6b">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="greeting">Hello, <b id="greetName">Admin</b></div>
+      <div class="search"><i class="fas fa-search"></i>
+        <input type="text" id="adminSearch" placeholder="Search products..." /></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="pageDashboard" class="page-content">
+      <div class="section-title">
+        <div><h1><i class="fas fa-chart-pie"></i> Dashboard</h1>
+          <p>Overview of your store</p></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="st-icon"><i class="fas fa-box"></i></div>
+          <div class="st-label">Total Products</div>
+          <div class="st-value" id="statProducts">0</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="st-icon"><i class="fas fa-images"></i></div>
+          <div class="st-label">Gallery Images</div>
+          <div class="st-value" id="statGallery">0</div>
+        </div>
+        <div class="stat-card green">
+          <div class="st-icon"><i class="fas fa-tags"></i></div>
+          <div class="st-label">Categories</div>
+          <div class="st-value" id="statCategories">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div id="pageProducts" class="page-content" style="display:none">
+      <div class="section-title">
+        <div><h1><i class="fas fa-box"></i> Products</h1>
+          <p>Manage your product catalog</p></div>
+        <button class="btn btn-primary" onclick="openProductModal()">
+          <i class="fas fa-plus"></i> Add Product</button>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box"><i class="fas fa-search"></i>
+          <input type="text" id="prodSearch" placeholder="Search products..." /></div>
+        <select id="prodCatFilter" class="form-select" style="width:auto;min-width:150px">
+          <option value="all">All Categories</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Product</th><th>Price</th><th>MRP</th><th>Category</th><th>Stock</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="productsTableBody">
+            <tr><td colspan="6" class="empty-row"><i class="fas fa-inbox"></i>Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div id="pageOrders" class="page-content" style="display:none">
+      <div class="section-title">
+        <div><h1><i class="fas fa-shopping-bag"></i> Orders</h1>
+          <p>Customer orders will appear here</p></div>
+      </div>
+      <div class="table-wrap">
+        <div class="empty-row"><i class="fas fa-inbox"></i>No orders yet</div>
+      </div>
+    </div>
+
+    <!-- GALLERY -->
+    <div id="pageGallery" class="page-content" style="display:none">
+      <div class="section-title">
+        <div><h1><i class="fas fa-images"></i> Gallery</h1>
+          <p>Manage store gallery images</p></div>
+        <button class="btn btn-primary" onclick="openGalleryModal()">
+          <i class="fas fa-plus"></i> Add Image</button>
+      </div>
+      <div id="galleryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px"></div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div id="pageCategories" class="page-content" style="display:none">
+      <div class="section-title">
+        <div><h1><i class="fas fa-tags"></i> Categories</h1>
+          <p>Manage product categories</p></div>
+      </div>
+      <div class="settings-card">
+        <div class="toolbar" style="margin:0;padding:0;background:none;border:none;box-shadow:none">
+          <div class="search-box" style="flex:1">
+            <input type="text" id="newCatInput" placeholder="New category name..." class="form-input" />
+          </div>
+          <button class="btn btn-primary" onclick="addCategory()">
+            <i class="fas fa-plus"></i> Add</button>
+        </div>
+        <div id="catList" style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="pageSettings" class="page-content" style="display:none">
+      <div class="section-title">
+        <div><h1><i class="fas fa-cog"></i> Settings</h1>
+          <p>Configure your store</p></div>
+      </div>
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3><i class="fas fa-store"></i> Website Settings</h3>
+          <div class="form-group"><label>Website Name</label>
+            <input type="text" id="setWebsiteName" class="form-input" /></div>
+          <div class="form-group"><label>UPI ID</label>
+            <input type="text" id="setUpi" class="form-input" /></div>
+          <button class="btn btn-primary" onclick="saveSettings()">
+            <i class="fas fa-save"></i> Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="prod-modal" id="productModal">
+  <div class="prod-modal-box">
+    <h2><i class="fas fa-box"></i> <span id="prodModalTitle">Add Product</span></h2>
+    <form id="productForm">
+      <input type="hidden" id="pfId" />
+      <div class="prod-form-grid">
+        <div class="full"><label>Product Name *</label>
+          <input type="text" id="pfName" required /></div>
+        <div><label>Category *</label>
+          <select id="pfCategory" required></select></div>
+        <div><label>Fabric</label>
+          <select id="pfFabric">
+            <option value="silk">Silk</option><option value="cotton">Cotton</option>
+            <option value="georgette">Georgette</option><option value="chiffon">Chiffon</option>
+            <option value="linen">Linen</option></select></div>
+        <div><label>Selling Price (₹) *</label>
+          <input type="number" id="pfPrice" required /></div>
+        <div><label>MRP (₹) *</label>
+          <input type="number" id="pfMrp" required /></div>
+        <div><label>Sizes (comma separated)</label>
+          <input type="text" id="pfSizes" placeholder="S,M,L,XL" /></div>
+        <div><label>Colors (comma separated)</label>
+          <input type="text" id="pfColors" placeholder="Red,Blue,Green" /></div>
+        <div class="full"><label>Main Image URL *</label>
+          <input type="url" id="pfImageUrl" placeholder="https://example.com/image.jpg" required />
+          <div class="url-hint">Paste image URL (Imgur, ImgBB, etc.)</div></div>
+        <div class="full"><label>Color Images URLs (comma separated)</label>
+          <input type="text" id="pfColorUrls" placeholder="https://red.jpg, https://blue.jpg" />
+          <div class="url-hint">One URL per color, in same order</div></div>
+        <div><label>Delivery Days</label>
+          <input type="number" id="pfDelivery" value="3" min="1" max="30" /></div>
+        <div><label>Enable 3D View</label>
+          <div class="toggle-row">
+            <div class="toggle-btn active" id="pf3dToggle" onclick="this.classList.toggle('active')">
+              <div class="knob"></div>
+            </div>
+            <span style="font-size:13px">3D View</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeProductModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- GALLERY MODAL -->
+<div class="prod-modal" id="galleryModal">
+  <div class="prod-modal-box" style="max-width:480px">
+    <h2><i class="fas fa-image"></i> Add Gallery Image</h2>
+    <form id="galleryForm">
+      <div class="form-group"><label>Image URL *</label>
+        <input type="url" id="gUrl" class="form-input" placeholder="https://example.com/image.jpg" required />
+        <div class="url-hint">Paste image URL</div></div>
+      <div class="form-group"><label>Caption (optional)</label>
+        <input type="text" id="gCaption" class="form-input" /></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeGalleryModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>
