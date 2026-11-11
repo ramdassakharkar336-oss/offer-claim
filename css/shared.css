@@ -1,0 +1,258 @@
+/* ============================================================
+   SHARED STYLES – Used by both main site & admin
+   Flipkart/Amazon style – Clean, White, Professional
+   ============================================================ */
+
+:root {
+    /* Amazon/Flipkart Inspired Colors */
+    --header-bg: #131921;
+    --header-dark: #232f3e;
+    --orange: #fb641b;
+    --orange-dark: #f4511e;
+    --blue: #2874f0;
+    --blue-dark: #1a5fd4;
+    --green: #388e3c;
+    --red: #d32f2f;
+    --yellow: #ff9f00;
+
+    /* Neutrals */
+    --white: #ffffff;
+    --bg-app: #f1f3f6;
+    --bg-card: #ffffff;
+    --border: #e0e0e0;
+    --text-main: #212121;
+    --text-muted: #878787;
+    --text-light: #b0b0b0;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,0.10);
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Transitions – 120 FPS optimized */
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 150ms;
+    --dur-base: 250ms;
+    --dur-slow: 350ms;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg-app);
+    color: var(--text-main);
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+/* GPU acceleration for animated elements */
+.card, .btn, .product-card, .nav-btn, .action-btn {
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f1f3f6; }
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+
+/* ===== Toast ===== */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateZ(0);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    pointer-events: none;
+}
+
+.toast {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 22px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    background: var(--header-bg);
+    box-shadow: var(--shadow-lg);
+    pointer-events: auto;
+    animation: toastIn 300ms var(--ease),
+               toastOut 300ms 3.5s var(--ease) forwards;
+    will-change: transform, opacity;
+}
+
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+.toast.warning { background: var(--yellow); color: var(--text-main); }
+.toast.info { background: var(--blue); }
+
+.toast i { font-size: 14px; }
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.95) translateZ(0); }
+    to   { opacity: 1; transform: translateY(0) scale(1) translateZ(0); }
+}
+@keyframes toastOut {
+    to { opacity: 0; transform: translateY(-12px) scale(0.95) translateZ(0); }
+}
+
+/* ===== Buttons ===== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease),
+                box-shadow var(--dur-fast) var(--ease),
+                background var(--dur-fast) var(--ease);
+    text-decoration: none;
+}
+
+.btn i { font-size: 13px; }
+
+.btn-primary {
+    background: var(--blue);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(40,116,240,0.25);
+}
+
+.btn-primary:hover {
+    background: var(--blue-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40,116,240,0.35);
+}
+
+.btn-orange {
+    background: var(--orange);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(251,100,27,0.25);
+}
+
+.btn-orange:hover {
+    background: var(--orange-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(251,100,27,0.35);
+}
+
+.btn-outline {
+    background: #fff;
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+.btn-outline:hover {
+    background: #f5f5f5;
+    border-color: #c1c1c1;
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 13px;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ===== Form inputs ===== */
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    color: var(--text-main);
+    outline: none;
+    transition: border-color var(--dur-fast) var(--ease),
+                box-shadow var(--dur-fast) var(--ease);
+}
+
+.form-input:focus,
+.form-select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(40,116,240,0.10);
+}
+
+.form-group { margin-bottom: 16px; }
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-main);
+    margin-bottom: 6px;
+}
+
+/* ===== Loader ===== */
+.loader {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loader-dark {
+    border-color: rgba(40,116,240,0.2);
+    border-top-color: var(--blue);
+}
+
+/* ===== Utility ===== */
+.hidden { display: none !important; }
+.text-muted { color: var(--text-muted); }
+.text-center { text-align: center; }
+.flex { display: flex; }
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
